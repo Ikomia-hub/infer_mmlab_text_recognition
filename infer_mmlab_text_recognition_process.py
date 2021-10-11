@@ -27,6 +27,7 @@ from infer_mmlab_text_recognition.utils import textrecog_models, polygon2bbox, b
 from mmcv.runner import load_checkpoint
 import os
 import cv2
+import numpy as np
 
 
 # Your imports below
@@ -166,8 +167,9 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
                         pts = np.array([[pt.x, pt.y] for pt in pts])
                         x, y, w, h = polygon2bbox(pts)
                         crop_img = img[y:y + h, x:x + w]
-                        imgs.append(crop_img)
-                        boxes.append([x, y, w, h])
+                        if np.cumprod(np.shape(crop_img)).flatten()[-1]>0:
+                            imgs.append(crop_img)
+                            boxes.append([x, y, w, h])
                     results = self.infere(imgs)
 
                     for box, prediction in zip(boxes[::-1], results[::-1]):
