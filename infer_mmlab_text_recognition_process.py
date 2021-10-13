@@ -151,9 +151,12 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
 
         if self.model is not None:
             if img is not None:
+                # Shape of output image
                 h_original, w_original, _ = np.shape(img)
                 scores = []
                 labels_to_display = []
+
+                # Check if there are boxes as input
                 if graphics_input.isDataAvailable():
                     polygons = graphics_input.getItems()
                     to_display = np.zeros_like(img)
@@ -167,7 +170,7 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
                         pts = np.array([[pt.x, pt.y] for pt in pts])
                         x, y, w, h = polygon2bbox(pts)
                         crop_img = img[y:y + h, x:x + w]
-                        if np.cumprod(np.shape(crop_img)).flatten()[-1]>0:
+                        if np.cumprod(np.shape(crop_img)).flatten()[-1] > 0:
                             imgs.append(crop_img)
                             boxes.append([x, y, w, h])
                     results = self.infere(imgs)
@@ -178,7 +181,7 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
                         pts = bbox2polygon(box)
                         pts = [core.CPointF(x, y) for x, y in zip(pts[0::2], pts[1::2])]
                         prop_poly = core.GraphicsPolygonProperty()
-                        prop_poly.pen_color = [255,0,0]
+                        prop_poly.pen_color = [255, 0, 0]
                         graphics_box = graphics_output.addPolygon(pts, prop_poly)
                         graphics_box.setCategory(text)
 
@@ -190,15 +193,14 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
                             # character
                             labels_to_display.append("[" + text + "]")
                             scores.append(np.mean(score))
-                            for c,s in zip(text,score):
+                            for c, s in zip(text, score):
                                 labels_to_display.append(c)
                                 scores.append(float(s))
                         else:
                             labels_to_display.append(text)
                             scores.append(score)
 
-
-
+                # If there is no box input, the whole image is passed to the model
                 else:
                     to_display = np.zeros_like(img)
                     to_display.fill(255)
@@ -218,7 +220,6 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
                     else:
                         labels_to_display.append(prediction['text'])
                         scores.append(prediction['score'])
-
 
                 # display numeric values
                 numeric_output.addValueList(scores, "score", labels_to_display)
