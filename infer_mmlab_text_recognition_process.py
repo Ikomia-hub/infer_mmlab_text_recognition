@@ -25,12 +25,10 @@ import torch
 from mmocr.apis.inference import *
 from infer_mmlab_text_recognition.utils import textrecog_models, polygon2bbox, bbox2polygon
 from mmcv.runner import load_checkpoint
+import mmocr.datasets.pipelines
 import os
 import cv2
 import numpy as np
-
-
-# Your imports below
 
 
 # --------------------
