@@ -286,7 +286,7 @@ class InferMmlabTextRecognitionFactory(dataprocess.CTaskFactory):
                                 "a config file (.py) and a model file (.pth). Both of these files are produced " \
                                 "by the train plugin."
         # relative path -> as displayed in Ikomia application process tree
-        self.info.path = "Plugins/Python"
+        self.info.path = "Plugins/Python/Text"
         self.info.version = "1.0.0"
         self.info.iconPath = "icons/mmlab.png"
         # self.info.iconPath = "your path to a specific icon"
