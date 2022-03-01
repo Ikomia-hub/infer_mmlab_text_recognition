@@ -2,6 +2,6 @@
 torch==1.8.0
 torchvision==0.9.0
 --find-links https://download.openmmlab.com/mmcv/dist/cu111/torch1.8.0/index.html
-mmcv-full
-mmdet
-git+https://github.com/open-mmlab/mmocr.git
+mmcv-full==1.3.15
+mmdet==2.17.0
+git+https://github.com/open-mmlab/mmocr.git@v0.3.0
