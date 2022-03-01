@@ -135,14 +135,14 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
             if not (param.custom_training):
                 cfg = Config.fromfile(os.path.join(os.path.dirname(__file__), "configs/textrecog",
                                                    textrecog_models[param.model_name]["config"]))
-                cfg = disable_text_recog_aug_test(cfg)
+                #cfg = disable_text_recog_aug_test(cfg)
                 device = torch.device(self.device)
                 ckpt = os.path.join('https://download.openmmlab.com/mmocr/textrecog/',
                                     textrecog_models[param.model_name]["ckpt"])
                 self.model = init_detector(cfg, ckpt, device=device)
             else:
                 cfg = Config.fromfile(config)
-                cfg = disable_text_recog_aug_test(cfg)
+                #cfg = disable_text_recog_aug_test(cfg)
                 device = torch.device(self.device)
                 ckpt = ckpt
                 self.model = init_detector(cfg, ckpt, device=device)
