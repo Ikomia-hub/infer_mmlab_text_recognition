@@ -23,7 +23,7 @@ from mmcv import Config
 from mmocr.apis.inference import disable_text_recog_aug_test
 import torch
 from mmocr.apis.inference import *
-from infer_mmlab_text_recognition.utils import textrecog_models, polygon2bbox, bbox2polygon
+from infer_mmlab_text_recognition.utils import polygon2bbox, bbox2polygon
 from mmcv.runner import load_checkpoint
 import mmocr.datasets.pipelines
 import os
@@ -42,9 +42,11 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         # Place default value initialization here
         # Example : self.windowSize = 25
         self.update = False
-        self.model_name = "SATRN_sm"
-        self.cfg = ""
-        self.weights = ""
+        self.model_name = "satrn"
+        self.cfg = "satrn_small.py"
+        self.weights = "https://download.openmmlab.com/mmocr/textrecog/satrn/satrn_small_20211009-2cf13355.pth"
+        self.custom_cfg = ""
+        self.custom_weights = ""
         self.custom_training = False
 
     def setParamMap(self, param_map):
@@ -54,7 +56,9 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         self.update = distutils.util.strtobool(param_map["update"])
         self.model_name = param_map["model_name"]
         self.cfg = param_map["cfg"]
+        self.custom_cfg = param_map["custom_cfg"]
         self.weights = param_map["weights"]
+        self.custom_weights = param_map["custom_weights"]
         self.custom_training = distutils.util.strtobool(param_map["custom_training"])
 
     def getParamMap(self):
@@ -65,7 +69,9 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         param_map["update"] = str(self.update)
         param_map["model_name"] = self.model_name
         param_map["cfg"] = self.cfg
+        param_map["custom_cfg"] = self.custom_cfg
         param_map["weights"] = self.weights
+        param_map["custom_weights"] = self.custom_weights
         param_map["custom_training"] = str(self.custom_training)
         return param_map
 
@@ -124,26 +130,20 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
         numeric_output.setOutputType(dataprocess.NumericOutputType.TABLE)
         self.forwardInputImage(0, 0)
 
-        config = param.cfg if param.cfg != "" and param.custom_training else None
-        ckpt = param.weights if param.weights != "" and param.custom_training else None
-
         # Load models into memory
         if self.model is None or param.update:
             print("Loading text recognition model...")
-            if not (param.custom_training):
-                cfg = Config.fromfile(os.path.join(os.path.dirname(__file__), "configs/textrecog",
-                                                   textrecog_models[param.model_name]["config"]))
-                #cfg = disable_text_recog_aug_test(cfg)
-                device = torch.device(self.device)
-                ckpt = os.path.join('https://download.openmmlab.com/mmocr/textrecog/',
-                                    textrecog_models[param.model_name]["ckpt"])
-                self.model = init_detector(cfg, ckpt, device=device)
-            else:
+            if not param.custom_training:
+                config = os.path.join(os.path.dirname(os.path.abspath(__file__)), "configs", "textrecog",
+                                      param.model_name, param.cfg)
                 cfg = Config.fromfile(config)
-                #cfg = disable_text_recog_aug_test(cfg)
                 device = torch.device(self.device)
-                ckpt = ckpt
-                self.model = init_detector(cfg, ckpt, device=device)
+                ckpt = param.weights
+            else:
+                cfg = Config.fromfile(param.custom_cfg)
+                device = torch.device(self.device)
+                ckpt = param.custom_weights
+            self.model = init_detector(cfg, ckpt, device=device)
             param.update = False
             print("Model loaded!")
 

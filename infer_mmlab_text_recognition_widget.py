@@ -19,10 +19,11 @@
 from ikomia import core, dataprocess
 from ikomia.utils import pyqtutils, qtconversion
 from infer_mmlab_text_recognition.infer_mmlab_text_recognition_process import InferMmlabTextRecognitionParam
-from infer_mmlab_text_recognition.utils import textrecog_models
 
 # PyQt GUI framework
 from PyQt5.QtWidgets import *
+import yaml
+import os
 
 
 # --------------------
@@ -48,9 +49,14 @@ class InferMmlabTextRecognitionWidget(core.CWorkflowTaskWidget):
 
         # Models
         self.combo_model = pyqtutils.append_combo(self.grid_layout, "Model")
-        available_models = [name for name,v in textrecog_models.items()]
-        for item in available_models:
-            self.combo_model.addItem(item)
+        self.combo_config = pyqtutils.append_combo(self.grid_layout, "Config name")
+        self.configs_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "configs", "textrecog")
+        for directory in os.listdir(self.configs_path):
+            if os.path.isdir(os.path.join(self.configs_path, directory)) and directory != "_base_":
+                self.combo_model.addItem(directory)
+
+        self.combo_model.currentTextChanged.connect(self.on_combo_model_changed)
+
         self.combo_model.setCurrentText(self.parameters.model_name)
 
         # Model weights
@@ -67,7 +73,7 @@ class InferMmlabTextRecognitionWidget(core.CWorkflowTaskWidget):
                                                      mode=QFileDialog.ExistingFile)
 
         # Hide or show widgets depending on user's choice
-        self.combo_model.setEnabled(not (self.check_custom_training.isChecked()))
+        self.combo_model.setEnabled(not self.check_custom_training.isChecked())
         self.label_cfg.setEnabled(self.check_custom_training.isChecked())
         self.label_model_path.setEnabled(self.check_custom_training.isChecked())
         self.browse_cfg.setEnabled(self.check_custom_training.isChecked())
@@ -83,8 +89,33 @@ class InferMmlabTextRecognitionWidget(core.CWorkflowTaskWidget):
         # Set widget layout
         self.setLayout(layout_ptr)
 
+    def on_combo_model_changed(self, int):
+        if self.combo_model.currentText() != "":
+            self.combo_config.clear()
+            current_model = self.combo_model.currentText()
+            config_names = []
+            yaml_file = os.path.join(self.configs_path, current_model, "metafile.yml")
+            if os.path.isfile(yaml_file):
+                with open(yaml_file, "r") as f:
+                    models_list = yaml.load(f, Loader=yaml.FullLoader)['Models']
+
+                self.available_cfg_ckpt = {model_dict["Name"]: {'cfg': model_dict["Config"],
+                                                                'ckpt': model_dict["Weights"]}
+                                           for
+                                           model_dict in models_list}
+                for experiment_name in self.available_cfg_ckpt.keys():
+                    self.combo_config.addItem(experiment_name)
+                    config_names.append(experiment_name)
+                selected_cfg = self.parameters.cfg.replace(".py", "")
+                if selected_cfg in config_names:
+                    self.combo_config.setCurrentText(selected_cfg)
+                else:
+                    self.combo_config.setCurrentText(list(self.available_cfg_ckpt.keys())[0])
+
     def on_check_custom_training_changed(self, int):
-        self.combo_model.setEnabled(not (self.check_custom_training.isChecked()))
+        self.combo_model.setEnabled(not self.check_custom_training.isChecked())
+        self.combo_config.setEnabled(not self.check_custom_training.isChecked())
+
         self.label_cfg.setEnabled(self.check_custom_training.isChecked())
         self.label_model_path.setEnabled(self.check_custom_training.isChecked())
         self.browse_cfg.setEnabled(self.check_custom_training.isChecked())
@@ -96,10 +127,11 @@ class InferMmlabTextRecognitionWidget(core.CWorkflowTaskWidget):
         # Get parameters from widget
         # Example : self.parameters.windowSize = self.spinWindowSize.value()
         self.parameters.model_name = self.combo_model.currentText()
-        self.parameters.weights = self.browse_model.path
-        self.parameters.cfg = self.browse_cfg.path
+        self.parameters.custom_weights = self.browse_model.path
+        self.parameters.custom_cfg = self.browse_cfg.path
         self.parameters.custom_training = self.check_custom_training.isChecked()
-
+        self.parameters.cfg = self.combo_config.currentText()+".py"
+        self.parameters.weights = self.available_cfg_ckpt[self.combo_config.currentText()]['ckpt']
         # update model
         self.parameters.update = True
 
