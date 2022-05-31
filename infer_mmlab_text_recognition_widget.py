@@ -61,7 +61,7 @@ class InferMmlabTextRecognitionWidget(core.CWorkflowTaskWidget):
 
         # Model weights
         self.label_model_path = QLabel("Model path (.pth)")
-        self.browse_model = pyqtutils.BrowseFileWidget(path=self.parameters.weights, tooltip="Select file",
+        self.browse_model = pyqtutils.BrowseFileWidget(path=self.parameters.custom_weights, tooltip="Select file",
                                                        mode=QFileDialog.ExistingFile)
         row = self.grid_layout.rowCount()
         self.grid_layout.addWidget(self.label_model_path, row, 0)
@@ -69,7 +69,7 @@ class InferMmlabTextRecognitionWidget(core.CWorkflowTaskWidget):
 
         # Model cfg
         self.label_cfg = QLabel("Config file (.py)")
-        self.browse_cfg = pyqtutils.BrowseFileWidget(path=self.parameters.cfg, tooltip="Select file",
+        self.browse_cfg = pyqtutils.BrowseFileWidget(path=self.parameters.custom_cfg, tooltip="Select file",
                                                      mode=QFileDialog.ExistingFile)
 
         # Hide or show widgets depending on user's choice
