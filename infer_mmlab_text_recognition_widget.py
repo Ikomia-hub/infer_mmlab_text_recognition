@@ -51,13 +51,14 @@ class InferMmlabTextRecognitionWidget(core.CWorkflowTaskWidget):
         self.combo_model = pyqtutils.append_combo(self.grid_layout, "Model")
         self.combo_config = pyqtutils.append_combo(self.grid_layout, "Config name")
         self.configs_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "configs", "textrecog")
+
         for directory in os.listdir(self.configs_path):
             if os.path.isdir(os.path.join(self.configs_path, directory)) and directory != "_base_":
                 self.combo_model.addItem(directory)
 
-        self.combo_model.currentTextChanged.connect(self.on_combo_model_changed)
-
         self.combo_model.setCurrentText(self.parameters.model_name)
+        self.on_combo_model_changed(self.parameters.model_name)
+        self.combo_model.currentTextChanged.connect(self.on_combo_model_changed)
 
         # Model weights
         self.label_model_path = QLabel("Model path (.pth)")
@@ -89,7 +90,7 @@ class InferMmlabTextRecognitionWidget(core.CWorkflowTaskWidget):
         # Set widget layout
         self.setLayout(layout_ptr)
 
-    def on_combo_model_changed(self, int):
+    def on_combo_model_changed(self, model_name):
         if self.combo_model.currentText() != "":
             self.combo_config.clear()
             current_model = self.combo_model.currentText()
@@ -106,7 +107,8 @@ class InferMmlabTextRecognitionWidget(core.CWorkflowTaskWidget):
                 for experiment_name in self.available_cfg_ckpt.keys():
                     self.combo_config.addItem(experiment_name)
                     config_names.append(experiment_name)
-                selected_cfg = self.parameters.cfg.replace(".py", "")
+
+                selected_cfg = os.path.splitext(self.parameters.cfg)[0]
                 if selected_cfg in config_names:
                     self.combo_config.setCurrentText(selected_cfg)
                 else:
