@@ -3,12 +3,12 @@ import ikomia
 import os
 import yaml
 import cv2
+from ikomia.utils.tests import run_for_test
 
 
 def test(t, data_dict):
     plugins_folder = ikomia.ik_registry.getPluginsDirectory()
     plugin_folder = os.path.join(plugins_folder, "Python", t.name)
-
     img = cv2.imread(data_dict["images"]["detection"]["text"])[::-1]
     input_img = t.getInput(0)
     input_img.setImage(img)
@@ -30,4 +30,4 @@ def test(t, data_dict):
                     # without update = 1, model is not updated between 2 test
                     params["update"] = 1
                     task.set_parameters(t, params)
-                    t.run()
+                    yield run_for_test(t)
