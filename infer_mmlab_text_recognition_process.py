@@ -285,7 +285,7 @@ class InferMmlabTextRecognitionFactory(dataprocess.CTaskFactory):
                                 "by the train plugin."
         # relative path -> as displayed in Ikomia application process tree
         self.info.path = "Plugins/Python/Text"
-        self.info.version = "1.0.0"
+        self.info.version = "1.0.1"
         self.info.iconPath = "icons/mmlab.png"
         # self.info.iconPath = "your path to a specific icon"
         self.info.authors = "Kuang, Zhanghui and Sun, Hongbin and Li, Zhizhong and Yue, Xiaoyu and Lin," \
