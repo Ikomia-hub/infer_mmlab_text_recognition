@@ -16,9 +16,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ikomia import core, dataprocess
+from ikomia import utils, core, dataprocess
 import copy
-import distutils
 from mmcv import Config
 from mmocr.apis.inference import disable_text_recog_aug_test
 import torch
@@ -53,13 +52,13 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         # Set parameters values from Ikomia application
         # Parameters values are stored as string and accessible like a python dict
         # Example : self.windowSize = int(param_map["windowSize"])
-        self.update = distutils.util.strtobool(param_map["update"])
+        self.update = utils.strtobool(param_map["update"])
         self.model_name = param_map["model_name"]
         self.cfg = param_map["cfg"]
         self.custom_cfg = param_map["custom_cfg"]
         self.weights = param_map["weights"]
         self.custom_weights = param_map["custom_weights"]
-        self.custom_training = distutils.util.strtobool(param_map["custom_training"])
+        self.custom_training = utils.strtobool(param_map["custom_training"])
 
     def getParamMap(self):
         # Send parameters values to Ikomia application
