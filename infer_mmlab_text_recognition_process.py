@@ -18,13 +18,10 @@
 
 from ikomia import utils, core, dataprocess
 import copy
-from mmcv import Config
-from mmocr.apis.inference import disable_text_recog_aug_test
+from mmocr.utils import register_all_modules
+from mmocr.apis.inferencers import TextRecInferencer
 import torch
-from mmocr.apis.inference import *
 from infer_mmlab_text_recognition.utils import polygon2bbox, bbox2polygon
-from mmcv.runner import load_checkpoint
-import mmocr.datasets.pipelines
 import os
 import cv2
 import numpy as np
@@ -47,6 +44,7 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         self.custom_cfg = ""
         self.custom_weights = ""
         self.custom_training = False
+        self.batch_size = 16
 
     def setParamMap(self, param_map):
         # Set parameters values from Ikomia application
@@ -59,6 +57,7 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         self.weights = param_map["weights"]
         self.custom_weights = param_map["custom_weights"]
         self.custom_training = utils.strtobool(param_map["custom_training"])
+        self.batch_size = int(param_map["batch_size"])
 
     def getParamMap(self):
         # Send parameters values to Ikomia application
@@ -135,14 +134,13 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
             if not param.custom_training:
                 config = os.path.join(os.path.dirname(os.path.abspath(__file__)), "configs", "textrecog",
                                       param.model_name, param.cfg)
-                cfg = Config.fromfile(config)
-                device = torch.device(self.device)
+                cfg = config
                 ckpt = param.weights
             else:
-                cfg = Config.fromfile(param.custom_cfg)
-                device = torch.device(self.device)
+                cfg = param.custom_cfg
                 ckpt = param.custom_weights
-            self.model = init_detector(cfg, ckpt, device=device)
+            register_all_modules()
+            self.model = TextRecInferencer(cfg, ckpt, device=self.device)
             param.update = False
             print("Model loaded!")
 
@@ -170,11 +168,11 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
                         if np.cumprod(np.shape(crop_img)).flatten()[-1] > 0:
                             imgs.append(crop_img)
                             boxes.append([x, y, w, h])
-                    results = self.infere(imgs)
+                    results = self.model(imgs)
 
                     for box, prediction in zip(boxes[::-1], results[::-1]):
                         text = prediction['text']
-                        score = prediction['score']
+                        score = prediction['scores']
                         pts = bbox2polygon(box)
                         pts = [core.CPointF(x, y) for x, y in zip(pts[0::2], pts[1::2])]
                         prop_poly = core.GraphicsPolygonProperty()
@@ -202,21 +200,21 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
                     to_display = np.zeros_like(img)
                     to_display.fill(255)
                     h, w, _ = np.shape(img)
-                    prediction = self.infere([img])[0]
+                    prediction = self.model([img])[0]
 
                     # draw predicted text on an image
                     self.draw_text(to_display, prediction['text'], [0, 0, w, h])
 
-                    if isinstance(prediction['score'], list):
+                    if isinstance(prediction['scores'], list):
                         # create list of displayed values : confidence for each word and confidence for each character
                         labels_to_display.append("[" + prediction['text'] + "]")
-                        scores.append(np.mean(prediction['score']))
-                        for c, s in zip(prediction['text'], prediction['score']):
+                        scores.append(np.mean(prediction['scores']))
+                        for c, s in zip(prediction['text'], prediction['scores']):
                             labels_to_display.append(c)
                             scores.append(float(s))
                     else:
                         labels_to_display.append(prediction['text'])
-                        scores.append(prediction['score'])
+                        scores.append(prediction['scores'])
 
                 # display numeric values
                 numeric_output.addValueList(scores, "score", labels_to_display)
@@ -234,24 +232,6 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
 
         # Call endTaskRun to finalize process
         self.endTaskRun()
-
-    def infere(self, imgs):
-
-        try:
-            out = model_inference(self.model,
-                                  imgs,
-                                  ann=None,
-                                  batch_mode=True,
-                                  return_data=False)
-        except:
-            out = []
-            for img in imgs:
-                out.append(model_inference(self.model,
-                                           img,
-                                           ann=None,
-                                           batch_mode=False,
-                                           return_data=False))
-        return out
 
     def draw_text(self, img_display, text, box):
         color = [0, 0, 0]
