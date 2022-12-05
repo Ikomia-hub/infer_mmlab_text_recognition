@@ -44,7 +44,7 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         self.custom_cfg = ""
         self.custom_weights = ""
         self.custom_training = False
-        self.batch_size = 16
+        self.batch_size = 64
 
     def setParamMap(self, param_map):
         # Set parameters values from Ikomia application
@@ -71,6 +71,7 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         param_map["weights"] = self.weights
         param_map["custom_weights"] = self.custom_weights
         param_map["custom_training"] = str(self.custom_training)
+        param_map["batch_size"] = str(self.batch_size)
         return param_map
 
 
@@ -86,6 +87,7 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
         # Example :  self.addInput(dataprocess.CImageIO())
         #           self.addOutput(dataprocess.CImageIO())
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        # number of words to recognize per model run
 
         self.addOutput(dataprocess.CGraphicsOutput())
         # Add numeric output
@@ -110,6 +112,7 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
         self.beginTaskRun()
 
         param = self.getParam()
+        batch_size = param.batch_size
         # Get input :
         input = self.getInput(0)
         graphics_input = self.getInput(1)
@@ -168,7 +171,8 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
                         if np.cumprod(np.shape(crop_img)).flatten()[-1] > 0:
                             imgs.append(crop_img)
                             boxes.append([x, y, w, h])
-                    results = self.model(imgs)
+
+                    results = self.batch_infer(imgs, batch_size)
 
                     for box, prediction in zip(boxes[::-1], results[::-1]):
                         text = prediction['text']
@@ -241,6 +245,10 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
         fontscale = w_b / w_t
         org = (x_b, y_b + int((h_b + h_t * fontscale) / 2))
         cv2.putText(img_display, text, org, font, fontScale=fontscale, color=color, thickness=1)
+
+    def batch_infer(self, imgs, batch_size):
+        chunks = [self.model(imgs[i:i+batch_size]) for i in range(0, len(imgs), batch_size)]
+        return [_ for __ in chunks for _ in __]
 
     def stop(self):
         super().stop()
