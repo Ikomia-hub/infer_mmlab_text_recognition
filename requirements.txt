@@ -2,6 +2,10 @@
 torch==1.9.0
 torchvision==0.10.0
 --find-links https://download.openmmlab.com/mmcv/dist/cu111/torch1.9.0/index.html
-mmcv-full==1.4.7
-mmdet==2.23.0
-mmocr==0.5.0
+mmengine==0.5.0
+mmcv==2.0.0rc3
+mmdet==3.0.0rc4
+mmocr==1.0.0rc5
+onnxruntime==1.8.1
+../Plugins/Python/infer_mmlab_text_detection/mmdeploy/mmdeploy-1.0.0rc1-linux-x86_64-onnxruntime1.8.1.whl;platform_system == "Linux"
+../Plugins/Python/infer_mmlab_text_detection/mmdeploy/mmdeploy-1.0.0rc1-py3-none-win_amd64.whl;platform_system == "Windows"
