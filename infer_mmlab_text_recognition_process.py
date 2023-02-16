@@ -22,9 +22,11 @@ from mmocr.utils import register_all_modules
 from mmocr.apis.inferencers import TextRecInferencer
 import torch
 from infer_mmlab_text_recognition.utils import polygon2bbox, bbox2polygon
+from tempfile import NamedTemporaryFile
 import os
 import cv2
 import numpy as np
+from mmengine import Config
 
 
 # --------------------
@@ -45,6 +47,7 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         self.custom_weights = ""
         self.custom_training = False
         self.batch_size = 64
+        self.dict_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dicts", "english_digits_symbols.txt")
 
     def setParamMap(self, param_map):
         # Set parameters values from Ikomia application
@@ -58,6 +61,7 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         self.custom_weights = param_map["custom_weights"]
         self.custom_training = utils.strtobool(param_map["custom_training"])
         self.batch_size = int(param_map["batch_size"])
+        self.dict_file = param_map["dict_file"]
 
     def getParamMap(self):
         # Send parameters values to Ikomia application
@@ -72,6 +76,7 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         param_map["custom_weights"] = self.custom_weights
         param_map["custom_training"] = str(self.custom_training)
         param_map["batch_size"] = str(self.batch_size)
+        param_map["dict_file"] = self.dict_file
         return param_map
 
 
@@ -140,7 +145,12 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
                 cfg = config
                 ckpt = param.weights
             else:
+                tmp_cfg = NamedTemporaryFile(suffix='.py')
                 cfg = param.custom_cfg
+                cfg = Config.fromfile(cfg)
+                cfg.model.decoder.dictionary.dict_file = param.dict_file
+                cfg.dump(tmp_cfg.name)
+                cfg = tmp_cfg.name
                 ckpt = param.custom_weights
             register_all_modules()
             self.model = TextRecInferencer(cfg, ckpt, device=self.device)

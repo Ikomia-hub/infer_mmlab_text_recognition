@@ -84,6 +84,9 @@ class InferMmlabTextRecognitionWidget(core.CWorkflowTaskWidget):
         self.grid_layout.addWidget(self.label_cfg, row, 0)
         self.grid_layout.addWidget(self.browse_cfg, row, 1)
 
+        # Dict file to decode the model output
+        self.browse_dict_file = pyqtutils.append_browse_file(self.grid_layout, "Dict file (.txt)",
+                                                             self.parameters.dict_file)
         # PyQt -> Qt wrapping
         layout_ptr = qtconversion.PyQtToQt(self.grid_layout)
 
@@ -134,6 +137,7 @@ class InferMmlabTextRecognitionWidget(core.CWorkflowTaskWidget):
         self.parameters.custom_training = self.check_custom_training.isChecked()
         self.parameters.cfg = self.combo_config.currentText()+".py"
         self.parameters.weights = self.available_cfg_ckpt[self.combo_config.currentText()]['ckpt']
+        self.parameters.dict_file = self.browse_dict_file.path
         # update model
         self.parameters.update = True
 
