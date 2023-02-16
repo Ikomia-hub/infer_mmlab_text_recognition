@@ -154,8 +154,12 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
                 scores = []
                 labels_to_display = []
 
+                nb_obj = 0
                 # Check if there are boxes as input
                 if graphics_input.isDataAvailable():
+                    nb_obj = len(graphics_input.getItems())
+
+                if nb_obj > 0:
                     polygons = graphics_input.getItems()
                     to_display = np.zeros_like(img)
                     to_display.fill(255)
@@ -205,7 +209,13 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
                     to_display.fill(255)
                     h, w, _ = np.shape(img)
                     prediction = self.model([img])[0]
-
+                    text = prediction['text']
+                    pts = [0, 0, w, h]
+                    pts = [core.CPointF(x, y) for x, y in zip(pts[0::2], pts[1::2])]
+                    prop_poly = core.GraphicsPolygonProperty()
+                    prop_poly.pen_color = [255, 0, 0]
+                    graphics_box = graphics_output.addPolygon(pts, prop_poly)
+                    graphics_box.setCategory(text)
                     # draw predicted text on an image
                     self.draw_text(to_display, prediction['text'], [0, 0, w, h])
 
