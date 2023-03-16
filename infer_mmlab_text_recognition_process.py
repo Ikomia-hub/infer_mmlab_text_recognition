@@ -153,8 +153,6 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
 
                 # Shape of output image
                 h_original, w_original, _ = np.shape(img)
-                scores = []
-                labels_to_display = []
 
                 nb_obj = 0
                 # Check if there are boxes as input
@@ -179,22 +177,19 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
 
                     results = self.batch_infer(imgs, batch_size)
 
-                    for box, prediction in zip(boxes[::-1], results[::-1]):
+                    for i, (box, prediction) in enumerate(zip(boxes[::-1], results[::-1])):
                         text = prediction['text']
                         conf = prediction['scores']
                         box_x, box_y, box_width, box_height = [float(c) for c in box]
-                        text_output.add_text_field(id=0, label="", text=text, confidence=float(conf),box_x=box_x, box_y=box_y, box_width=box_width, box_height=box_height, color=color)
+                        text_output.add_text_field(id=i, label="", text=text, confidence=float(conf),box_x=box_x, box_y=box_y, box_width=box_width, box_height=box_height, color=color)
 
                 # If there is no box input, the whole image is passed to the model
                 else:
-                    to_display = np.zeros_like(img)
-                    to_display.fill(255)
                     h, w, _ = np.shape(img)
                     prediction = self.model([img])[0]
                     text = prediction['text']
                     conf = prediction['scores']
                     text_output.add_text_field(id=0, label="", text=text, confidence=float(conf), box_x=0., box_y=0., box_width=float(w), box_height=float(h), color=color)
-
 
             else:
                 print("No input image")
@@ -206,15 +201,6 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
 
         # Call end_task_run to finalize process
         self.end_task_run()
-
-    def draw_text(self, img_display, text, box):
-        color = [0, 0, 0]
-        x_b, y_b, w_b, h_b = box
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        (w_t, h_t), _ = cv2.getTextSize(text, fontFace=font, fontScale=1, thickness=1)
-        fontscale = w_b / w_t
-        org = (x_b, y_b + int((h_b + h_t * fontscale) / 2))
-        cv2.putText(img_display, text, org, font, fontScale=fontscale, color=color, thickness=1)
 
     def batch_infer(self, imgs, batch_size):
         chunks = [self.model(imgs[i:i+batch_size]) for i in range(0, len(imgs), batch_size)]
