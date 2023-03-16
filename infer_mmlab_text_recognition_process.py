@@ -41,8 +41,8 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         # Example : self.windowSize = 25
         self.update = False
         self.model_name = "satrn"
-        self.cfg = "satrn_small.py"
-        self.weights = "https://download.openmmlab.com/mmocr/textrecog/satrn/satrn_small_20211009-2cf13355.pth"
+        self.cfg = "satrn_shallow-small_5e_st_mj.py"
+        self.weights = "https://download.openmmlab.com/mmocr/textrecog/satrn/satrn_shallow-small_5e_st_mj/satrn_shallow-small_5e_st_mj_20220915_152442-5591bf27.pth"
         self.custom_cfg = ""
         self.custom_weights = ""
         self.custom_training = False
