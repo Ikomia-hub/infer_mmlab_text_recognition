@@ -49,7 +49,7 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         self.batch_size = 64
         self.dict_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dicts", "english_digits_symbols.txt")
 
-    def setParamMap(self, param_map):
+    def set_values(self, param_map):
         # Set parameters values from Ikomia application
         # Parameters values are stored as string and accessible like a python dict
         # Example : self.windowSize = int(param_map["windowSize"])
@@ -63,10 +63,10 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         self.batch_size = int(param_map["batch_size"])
         self.dict_file = param_map["dict_file"]
 
-    def getParamMap(self):
+    def get_values(self):
         # Send parameters values to Ikomia application
         # Create the specific dict structure (string container)
-        param_map = core.ParamMap()
+        param_map = {}
         # Example : paramMap["windowSize"] = str(self.windowSize)
         param_map["update"] = str(self.update)
         param_map["model_name"] = self.model_name
@@ -90,51 +90,41 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
         dataprocess.C2dImageTask.__init__(self, name)
         # Add input/output of the process here
         # Example :  self.addInput(dataprocess.CImageIO())
-        #           self.addOutput(dataprocess.CImageIO())
+        #           self.add_output(dataprocess.CImageIO())
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         # number of words to recognize per model run
 
-        self.addOutput(dataprocess.CGraphicsOutput())
-        # Add numeric output
-        self.addOutput(dataprocess.CNumericIO())
-        self.addOutput(dataprocess.CImageIO())
+        self.add_output(dataprocess.CTextIO())
 
         self.model = None
         # Create parameters class
         if param is None:
-            self.setParam(InferMmlabTextRecognitionParam())
+            self.set_param_object(InferMmlabTextRecognitionParam())
         else:
-            self.setParam(copy.deepcopy(param))
+            self.set_param_object(copy.deepcopy(param))
 
-    def getProgressSteps(self):
+    def get_progress_steps(self):
         # Function returning the number of progress steps for this process
         # This is handled by the main progress bar of Ikomia application
         return 1
 
     def run(self):
         # Core function of your process
-        # Call beginTaskRun for initialization
-        self.beginTaskRun()
+        # Call begin_task_run for initialization
+        self.begin_task_run()
 
-        param = self.getParam()
+        param = self.get_param_object()
         batch_size = param.batch_size
         # Get input :
-        input = self.getInput(0)
-        graphics_input = self.getInput(1)
+        input = self.get_input(0)
+        graphics_input = self.get_input(1)
 
-        img = input.getImage()
+        img = input.get_image()
 
         # Get output :
-        graphics_output = self.getOutput(1)
-        drawn_text_output = self.getOutput(3)
+        text_output = self.get_output(1)
 
-        # Init numeric output
-        numeric_output = self.getOutput(2)
-        graphics_output.setNewLayer("mmlab_text_recognition")
-        graphics_output.setImageIndex(0)
-        numeric_output.clearData()
-        numeric_output.setOutputType(dataprocess.NumericOutputType.TABLE)
-        self.forwardInputImage(0, 0)
+        self.forward_input_image(0, 0)
 
         # Load models into memory
         if self.model is None or param.update:
@@ -159,6 +149,8 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
 
         if self.model is not None:
             if img is not None:
+                color = [255, 0, 0]
+
                 # Shape of output image
                 h_original, w_original, _ = np.shape(img)
                 scores = []
@@ -166,21 +158,20 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
 
                 nb_obj = 0
                 # Check if there are boxes as input
-                if graphics_input.isDataAvailable():
-                    nb_obj = len(graphics_input.getItems())
+                if graphics_input.is_data_available():
+                    nb_obj = len(graphics_input.get_items())
 
                 if nb_obj > 0:
-                    polygons = graphics_input.getItems()
-                    to_display = np.zeros_like(img)
-                    to_display.fill(255)
+                    polygons = graphics_input.get_items()
                     imgs = []
                     boxes = []
-
                     # create batch of images containing text
                     for polygon in polygons:
-                        pts = polygon.points
-                        pts = np.array([[pt.x, pt.y] for pt in pts])
-                        x, y, w, h = polygon2bbox(pts)
+                        if polygon.is_text_item():
+                            continue
+                        bbox = polygon.get_bounding_rect()
+                        bbox = [int(coord) for coord in bbox]
+                        x, y, w, h = bbox
                         crop_img = img[y:y + h, x:x + w]
                         if np.cumprod(np.shape(crop_img)).flatten()[-1] > 0:
                             imgs.append(crop_img)
@@ -190,28 +181,9 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
 
                     for box, prediction in zip(boxes[::-1], results[::-1]):
                         text = prediction['text']
-                        score = prediction['scores']
-                        pts = bbox2polygon(box)
-                        pts = [core.CPointF(x, y) for x, y in zip(pts[0::2], pts[1::2])]
-                        prop_poly = core.GraphicsPolygonProperty()
-                        prop_poly.pen_color = [255, 0, 0]
-                        graphics_box = graphics_output.addPolygon(pts, prop_poly)
-                        graphics_box.setCategory(text)
-
-                        # draw predicted text on an image
-                        self.draw_text(to_display, text, box)
-
-                        if isinstance(score, list):
-                            # create list of displayed values : confidence for each word and confidence for each
-                            # character
-                            labels_to_display.append("[" + text + "]")
-                            scores.append(np.mean(score))
-                            for c, s in zip(text, score):
-                                labels_to_display.append(c)
-                                scores.append(float(s))
-                        else:
-                            labels_to_display.append(text)
-                            scores.append(score)
+                        conf = prediction['scores']
+                        box_x, box_y, box_width, box_height = [float(c) for c in box]
+                        text_output.add_text_field(id=0, label="", text=text, confidence=float(conf),box_x=box_x, box_y=box_y, box_width=box_width, box_height=box_height, color=color)
 
                 # If there is no box input, the whole image is passed to the model
                 else:
@@ -220,31 +192,9 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
                     h, w, _ = np.shape(img)
                     prediction = self.model([img])[0]
                     text = prediction['text']
-                    pts = [0, 0, w, h]
-                    pts = [core.CPointF(x, y) for x, y in zip(pts[0::2], pts[1::2])]
-                    prop_poly = core.GraphicsPolygonProperty()
-                    prop_poly.pen_color = [255, 0, 0]
-                    graphics_box = graphics_output.addPolygon(pts, prop_poly)
-                    graphics_box.setCategory(text)
-                    # draw predicted text on an image
-                    self.draw_text(to_display, prediction['text'], [0, 0, w, h])
+                    conf = prediction['scores']
+                    text_output.add_text_field(id=0, label="", text=text, confidence=float(conf), box_x=0., box_y=0., box_width=float(w), box_height=float(h), color=color)
 
-                    if isinstance(prediction['scores'], list):
-                        # create list of displayed values : confidence for each word and confidence for each character
-                        labels_to_display.append("[" + prediction['text'] + "]")
-                        scores.append(np.mean(prediction['scores']))
-                        for c, s in zip(prediction['text'], prediction['scores']):
-                            labels_to_display.append(c)
-                            scores.append(float(s))
-                    else:
-                        labels_to_display.append(prediction['text'])
-                        scores.append(prediction['scores'])
-
-                # display numeric values
-                numeric_output.addValueList(scores, "score", labels_to_display)
-
-                # display drawn image with text prediction
-                drawn_text_output.setImage(to_display)
 
             else:
                 print("No input image")
@@ -252,10 +202,10 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
             print("No model loaded")
 
         # Step progress bar:
-        self.emitStepProgress()
+        self.emit_step_progress()
 
-        # Call endTaskRun to finalize process
-        self.endTaskRun()
+        # Call end_task_run to finalize process
+        self.end_task_run()
 
     def draw_text(self, img_display, text, box):
         color = [0, 0, 0]
@@ -284,7 +234,7 @@ class InferMmlabTextRecognitionFactory(dataprocess.CTaskFactory):
         dataprocess.CTaskFactory.__init__(self)
         # Set process information as string here
         self.info.name = "infer_mmlab_text_recognition"
-        self.info.shortDescription = "Inference for MMOCR from MMLAB text recognition models"
+        self.info.short_description = "Inference for MMOCR from MMLAB text recognition models"
         self.info.description = "If custom training is disabled, models will come from MMLAB's model zoo." \
                                 "Else, you can also choose to load a model you trained yourself with our plugin " \
                                 "train_mmlab_text_recognition. In this case make sure you give to the plugin" \
@@ -292,9 +242,9 @@ class InferMmlabTextRecognitionFactory(dataprocess.CTaskFactory):
                                 "by the train plugin."
         # relative path -> as displayed in Ikomia application process tree
         self.info.path = "Plugins/Python/Text"
-        self.info.version = "1.0.1"
-        self.info.iconPath = "icons/mmlab.png"
-        # self.info.iconPath = "your path to a specific icon"
+        self.info.version = "1.1.1"
+        self.info.icon_path = "icons/mmlab.png"
+        # self.info.icon_path = "your path to a specific icon"
         self.info.authors = "Kuang, Zhanghui and Sun, Hongbin and Li, Zhizhong and Yue, Xiaoyu and Lin," \
                             " Tsui Hin and Chen, Jianyong and Wei, Huaqiang and Zhu, Yiqin and Gao, Tong and Zhang," \
                             " Wenwei and Chen, Kai and Zhang, Wayne and Lin, Dahua"
@@ -303,7 +253,7 @@ class InferMmlabTextRecognitionFactory(dataprocess.CTaskFactory):
         self.info.year = 2021
         self.info.license = "Apache-2.0 License"
         # URL of documentation
-        self.info.documentationLink = "https://mmocr.readthedocs.io/en/latest/"
+        self.info.documentation_link = "https://mmocr.readthedocs.io/en/latest/"
         # Code source repository
         self.info.repository = "https://github.com/open-mmlab/mmocr"
         # Keywords used for search

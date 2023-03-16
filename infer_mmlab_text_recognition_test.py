@@ -10,8 +10,8 @@ def test(t, data_dict):
     plugins_folder = ikomia.ik_registry.getPluginsDirectory()
     plugin_folder = os.path.join(plugins_folder, "Python", t.name)
     img = cv2.imread(data_dict["images"]["detection"]["text"])[::-1]
-    input_img = t.getInput(0)
-    input_img.setImage(img)
+    input_img = t.get_input(0)
+    input_img.set_image(img)
     configs_path = os.path.join(plugin_folder, "configs", "textrecog")
     # loop on every configs available
     for directory in os.listdir(configs_path):
