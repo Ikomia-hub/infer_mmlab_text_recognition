@@ -168,15 +168,15 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
                         if polygon.is_text_item():
                             continue
                         bbox = polygon.get_bounding_rect()
-                        bbox = [int(coord) for coord in bbox]
-                        x, y, w, h = bbox
+                        x, y, w, h = [int(coord) for coord in bbox]
+
                         crop_img = img[y:y + h, x:x + w]
                         if np.cumprod(np.shape(crop_img)).flatten()[-1] > 0:
                             imgs.append(crop_img)
-                            boxes.append([x, y, w, h])
+                            boxes.append(bbox)
 
                     results = self.batch_infer(imgs, batch_size)
-
+                    print(results)
                     for i, (box, prediction) in enumerate(zip(boxes[::-1], results[::-1])):
                         text = prediction['text']
                         conf = prediction['scores']
@@ -203,7 +203,7 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
         self.end_task_run()
 
     def batch_infer(self, imgs, batch_size):
-        chunks = [self.model(imgs[i:i+batch_size]) for i in range(0, len(imgs), batch_size)]
+        chunks = [self.model(imgs[i:i+batch_size])['predictions'] for i in range(0, len(imgs), batch_size)]
         return [_ for __ in chunks for _ in __]
 
     def stop(self):
