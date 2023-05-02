@@ -176,7 +176,6 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
                             boxes.append(bbox)
 
                     results = self.batch_infer(imgs, batch_size)
-                    print(results)
                     for i, (box, prediction) in enumerate(zip(boxes[::-1], results[::-1])):
                         text = prediction['text']
                         conf = prediction['scores']
@@ -186,7 +185,7 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
                 # If there is no box input, the whole image is passed to the model
                 else:
                     h, w, _ = np.shape(img)
-                    prediction = self.model([img])[0]
+                    prediction = self.model([img])['predictions'][0]
                     text = prediction['text']
                     conf = prediction['scores']
                     text_output.add_text_field(id=0, label="", text=text, confidence=float(conf), box_x=0., box_y=0., box_width=float(w), box_height=float(h), color=color)
@@ -203,7 +202,7 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
         self.end_task_run()
 
     def batch_infer(self, imgs, batch_size):
-        chunks = [self.model(imgs[i:i+batch_size])['predictions'] for i in range(0, len(imgs), batch_size)]
+        chunks = [self.model(imgs[i:i+batch_size], batch_size=batch_size)['predictions'] for i in range(0, len(imgs), batch_size)]
         return [_ for __ in chunks for _ in __]
 
     def stop(self):
