@@ -1,89 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="e8296274-dc40-4ca7-865b-6ad28c6df881" name="Changes" comment="clean code">
+    <list default="true" id="e8296274-dc40-4ca7-865b-6ad28c6df881" name="Changes" comment="Use batch size to speed up the process">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/default_runtime.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/_base_/default_runtime.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/det_dataset/toy_dataset.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/models/ocr_mask_rcnn_r50_fpn_ohem.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/models/ocr_mask_rcnn_r50_fpn_ohem_poly.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/recog_datasets/seg_toy_dataset.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/recog_datasets/toy_dataset.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/recog_models/crnn.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/_base_/recog_models/crnn.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/recog_models/nrtr.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/recog_models/transformer.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/runtime_10e.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/_base_/runtime_10e.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/schedules/schedule_1200e.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/schedules/schedule_160e.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/schedules/schedule_1x.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/schedules/schedule_20e.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/schedules/schedule_2e.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/schedules/schedule_2x.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/schedules/schedule_adadelta_16e.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/schedules/schedule_adadelta_8e.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/_base_/schedules/schedule_adam_1e.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/kie/sdmgr/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/configs/kie/sdmgr/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/kie/sdmgr/metafile.yml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/kie/sdmgr/metafile.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/kie/sdmgr/sdmgr_novisual_60e_wildreceipt.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/kie/sdmgr/sdmgr_novisual_60e_wildreceipt.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/kie/sdmgr/sdmgr_unet16_60e_wildreceipt.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/kie/sdmgr/sdmgr_unet16_60e_wildreceipt.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/ner/bert_softmax/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/configs/ner/bert_softmax/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/dbnet/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/dbnet/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/dbnet/dbnet_r18_fpnc_1200e_icdar2015.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/dbnet/dbnet_r18_fpnc_1200e_icdar2015.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/dbnet/dbnet_r50dcnv2_fpnc_1200e_icdar2015.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/dbnet/dbnet_r50dcnv2_fpnc_1200e_icdar2015.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/dbnet/metafile.yml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/dbnet/metafile.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/drrg/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/drrg/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/drrg/drrg_r50_fpn_unet_1200e_ctw1500.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/drrg/drrg_r50_fpn_unet_1200e_ctw1500.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/drrg/metafile.yml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/drrg/metafile.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/fcenet/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/fcenet/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/fcenet/fcenet_r50_fpn_1500e_icdar2015.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/fcenet/fcenet_r50_fpn_1500e_icdar2015.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/fcenet/fcenet_r50dcnv2_fpn_1500e_ctw1500.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/fcenet/fcenet_r50dcnv2_fpn_1500e_ctw1500.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/fcenet/metafile.yml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/fcenet/metafile.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/maskrcnn/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/maskrcnn/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/maskrcnn/mask_rcnn_r50_fpn_160e_ctw1500.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/maskrcnn/mask_rcnn_r50_fpn_160e_ctw1500.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/maskrcnn/mask_rcnn_r50_fpn_160e_icdar2015.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/maskrcnn/mask_rcnn_r50_fpn_160e_icdar2015.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/maskrcnn/mask_rcnn_r50_fpn_160e_icdar2017.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/maskrcnn/mask_rcnn_r50_fpn_160e_icdar2017.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/maskrcnn/metafile.yml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/maskrcnn/metafile.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/panet/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/panet/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/panet/metafile.yml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/panet/metafile.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/panet/panet_r18_fpem_ffm_600e_ctw1500.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/panet/panet_r18_fpem_ffm_600e_ctw1500.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/panet/panet_r18_fpem_ffm_600e_icdar2015.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/panet/panet_r18_fpem_ffm_600e_icdar2015.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/panet/panet_r50_fpem_ffm_600e_icdar2017.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/panet/panet_r50_fpem_ffm_600e_icdar2017.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/psenet/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/psenet/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/psenet/metafile.yml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/psenet/metafile.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/psenet/psenet_r50_fpnf_600e_ctw1500.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/psenet/psenet_r50_fpnf_600e_ctw1500.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/psenet/psenet_r50_fpnf_600e_icdar2015.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/psenet/psenet_r50_fpnf_600e_icdar2015.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/psenet/psenet_r50_fpnf_600e_icdar2017.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/psenet/psenet_r50_fpnf_600e_icdar2017.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/textsnake/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/textsnake/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/textsnake/metafile.yml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/textsnake/metafile.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textdet/textsnake/textsnake_r50_fpn_unet_1200e_ctw1500.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textdet/textsnake/textsnake_r50_fpn_unet_1200e_ctw1500.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/crnn/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/crnn/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/crnn/crnn_academic_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/crnn/crnn_academic_dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/crnn/metafile.yml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/crnn/metafile.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/nrtr/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/nrtr/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/nrtr/metafile.yml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/nrtr/metafile.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/nrtr/nrtr_r31_1by16_1by8_academic.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/nrtr/nrtr_r31_1by16_1by8_academic.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/nrtr/nrtr_r31_1by8_1by4_academic.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/nrtr/nrtr_r31_1by8_1by4_academic.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/robust_scanner/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/robust_scanner/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/robust_scanner/metafile.yml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/robust_scanner/metafile.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/robust_scanner/robustscanner_r31_academic.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/robust_scanner/robustscanner_r31_academic.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/sar/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/sar/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/sar/metafile.yml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/sar/metafile.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/sar/sar_r31_parallel_decoder_academic.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/sar/sar_r31_parallel_decoder_academic.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/sar/sar_r31_parallel_decoder_chinese.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/sar/sar_r31_parallel_decoder_chinese.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/sar/sar_r31_parallel_decoder_toy_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/sar/sar_r31_parallel_decoder_toy_dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/sar/sar_r31_sequential_decoder_academic.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/sar/sar_r31_sequential_decoder_academic.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/satrn/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/satrn/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/satrn/metafile.yml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/satrn/metafile.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/satrn/satrn_academic.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/satrn/satrn_academic.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/satrn/satrn_small.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/satrn/satrn_small.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/seg/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/seg/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/seg/metafile.yml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/seg/metafile.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/seg/seg_r31_1by16_fpnocr_academic.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/seg/seg_r31_1by16_fpnocr_academic.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/seg/seg_r31_1by16_fpnocr_toy_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/seg/seg_r31_1by16_fpnocr_toy_dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/tps/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/tps/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/tps/crnn_tps_academic_dataset.py" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/tps/crnn_tps_academic_dataset.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/textrecog/tps/metafile.yml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/textrecog/tps/metafile.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/infer_mmlab_text_recognition_process.py" beforeDir="false" afterPath="$PROJECT_DIR$/infer_mmlab_text_recognition_process.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -109,11 +31,11 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">
-    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
-    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "last_opened_file_path": "/home/ambroise/Ikomia/Plugins/Python/infer_mmlab_kie"
+  }
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$" />
@@ -142,7 +64,21 @@
       <option name="project" value="LOCAL" />
       <updated>1634127836560</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Remove debug print">
+      <created>1680698222682</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1680698222682</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Use batch size to speed up the process">
+      <created>1680700372827</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1680700372827</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -159,6 +95,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Fix bug with empty boundingbox" />
     <MESSAGE value="clean code" />
-    <option name="LAST_COMMIT_MESSAGE" value="clean code" />
+    <MESSAGE value="Remove debug print" />
+    <MESSAGE value="Use batch size to speed up the process" />
+    <option name="LAST_COMMIT_MESSAGE" value="Use batch size to speed up the process" />
   </component>
 </project>
