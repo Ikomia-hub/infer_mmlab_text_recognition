@@ -43,8 +43,8 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         self.model_name = "satrn"
         self.cfg = "satrn_shallow-small_5e_st_mj.py"
         self.weights = "https://download.openmmlab.com/mmocr/textrecog/satrn/satrn_shallow-small_5e_st_mj/satrn_shallow-small_5e_st_mj_20220915_152442-5591bf27.pth"
-        self.custom_cfg = ""
-        self.custom_weights = ""
+        self.config_file = ""
+        self.model_weight_file = ""
         self.custom_training = False
         self.batch_size = 64
         self.dict_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dicts", "english_digits_symbols.txt")
@@ -56,9 +56,9 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         self.update = utils.strtobool(param_map["update"])
         self.model_name = param_map["model_name"]
         self.cfg = param_map["cfg"]
-        self.custom_cfg = param_map["custom_cfg"]
+        self.config_file = param_map["config_file"]
         self.weights = param_map["weights"]
-        self.custom_weights = param_map["custom_weights"]
+        self.model_weight_file = param_map["model_weight_file"]
         self.custom_training = utils.strtobool(param_map["custom_training"])
         self.batch_size = int(param_map["batch_size"])
         self.dict_file = param_map["dict_file"]
@@ -71,9 +71,9 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         param_map["update"] = str(self.update)
         param_map["model_name"] = self.model_name
         param_map["cfg"] = self.cfg
-        param_map["custom_cfg"] = self.custom_cfg
+        param_map["config_file"] = self.config_file
         param_map["weights"] = self.weights
-        param_map["custom_weights"] = self.custom_weights
+        param_map["model_weight_file"] = self.model_weight_file
         param_map["custom_training"] = str(self.custom_training)
         param_map["batch_size"] = str(self.batch_size)
         param_map["dict_file"] = self.dict_file
@@ -129,6 +129,9 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
         # Load models into memory
         if self.model is None or param.update:
             print("Loading text recognition model...")
+            if self.model is None or param.update:
+                if param.model_weight_file != "":
+                    param.use_custom_model = True
             if not param.custom_training:
                 config = os.path.join(os.path.dirname(os.path.abspath(__file__)), "configs", "textrecog",
                                       param.model_name, param.cfg)
@@ -136,12 +139,12 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
                 ckpt = param.weights
             else:
                 tmp_cfg = NamedTemporaryFile(suffix='.py')
-                cfg = param.custom_cfg
+                cfg = param.config_file
                 cfg = Config.fromfile(cfg)
                 cfg.model.decoder.dictionary.dict_file = param.dict_file
                 cfg.dump(tmp_cfg.name)
                 cfg = tmp_cfg.name
-                ckpt = param.custom_weights
+                ckpt = param.model_weight_file
             register_all_modules()
             self.model = TextRecInferencer(cfg, ckpt, device=self.device)
             param.update = False

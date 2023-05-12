@@ -62,7 +62,7 @@ class InferMmlabTextRecognitionWidget(core.CWorkflowTaskWidget):
 
         # Model weights
         self.label_model_path = QLabel("Model path (.pth)")
-        self.browse_model = pyqtutils.BrowseFileWidget(path=self.parameters.custom_weights, tooltip="Select file",
+        self.browse_model = pyqtutils.BrowseFileWidget(path=self.parameters.model_weight_file, tooltip="Select file",
                                                        mode=QFileDialog.ExistingFile)
         row = self.grid_layout.rowCount()
         self.grid_layout.addWidget(self.label_model_path, row, 0)
@@ -70,7 +70,7 @@ class InferMmlabTextRecognitionWidget(core.CWorkflowTaskWidget):
 
         # Model cfg
         self.label_cfg = QLabel("Config file (.py)")
-        self.browse_cfg = pyqtutils.BrowseFileWidget(path=self.parameters.custom_cfg, tooltip="Select file",
+        self.browse_cfg = pyqtutils.BrowseFileWidget(path=self.parameters.config_file, tooltip="Select file",
                                                      mode=QFileDialog.ExistingFile)
 
         # Hide or show widgets depending on user's choice
@@ -132,8 +132,8 @@ class InferMmlabTextRecognitionWidget(core.CWorkflowTaskWidget):
         # Get parameters from widget
         # Example : self.parameters.windowSize = self.spinWindowSize.value()
         self.parameters.model_name = self.combo_model.currentText()
-        self.parameters.custom_weights = self.browse_model.path
-        self.parameters.custom_cfg = self.browse_cfg.path
+        self.parameters.model_weight_file = self.browse_model.path
+        self.parameters.config_file = self.browse_cfg.path
         self.parameters.custom_training = self.check_custom_training.isChecked()
         self.parameters.cfg = self.combo_config.currentText()+".py"
         self.parameters.weights = self.available_cfg_ckpt[self.combo_config.currentText()]['ckpt']
