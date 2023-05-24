@@ -134,7 +134,7 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
             print("Loading text recognition model...")
             if self.model is None or param.update:
                 if param.model_weight_file != "":
-                    param.use_custom_model = True
+                    param.custom_training = True
             if not param.custom_training:
                 config = os.path.join(os.path.dirname(os.path.abspath(__file__)), "configs", "textrecog",
                                       param.model_name, param.cfg)
@@ -233,7 +233,7 @@ class InferMmlabTextRecognitionFactory(dataprocess.CTaskFactory):
                                 "by the train plugin."
         # relative path -> as displayed in Ikomia application process tree
         self.info.path = "Plugins/Python/Text"
-        self.info.version = "1.1.1"
+        self.info.version = "1.1.2"
         self.info.icon_path = "icons/mmlab.png"
         # self.info.icon_path = "your path to a specific icon"
         self.info.authors = "Kuang, Zhanghui and Sun, Hongbin and Li, Zhizhong and Yue, Xiaoyu and Lin," \
