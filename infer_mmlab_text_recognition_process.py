@@ -124,6 +124,9 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
         # Get output :
         text_output = self.get_output(1)
 
+        # clear output before each run as temporary fix
+        text_output.clear_data()
+
         self.forward_input_image(0, 0)
 
         # Load models into memory
