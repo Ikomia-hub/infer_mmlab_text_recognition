@@ -24,7 +24,7 @@ def test(t, data_dict):
                     ckpt = model_dict["Weights"]
                     params = t.get_parameters()
                     params["cfg"] = cfg
-                    params["model_weight_file"] = ckpt
+                    params["model_url"] = ckpt
                     params["model_name"] = directory
                     # without update = 1, model is not updated between 2 test
                     params["update"] = "1"
