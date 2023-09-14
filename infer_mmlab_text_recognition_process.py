@@ -25,6 +25,7 @@ from tempfile import NamedTemporaryFile
 import os
 import numpy as np
 from mmengine import Config
+import yaml
 
 
 # --------------------
@@ -40,7 +41,6 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         self.update = False
         self.model_name = "satrn"
         self.cfg = "satrn_shallow-small_5e_st_mj.py"
-        self.weights = "https://download.openmmlab.com/mmocr/textrecog/satrn/satrn_shallow-small_5e_st_mj/satrn_shallow-small_5e_st_mj_20220915_152442-5591bf27.pth"
         self.config_file = ""
         self.model_weight_file = ""
         self.custom_training = False
@@ -55,7 +55,6 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         self.model_name = param_map["model_name"]
         self.cfg = param_map["cfg"]
         self.config_file = param_map["config_file"]
-        self.weights = param_map["weights"]
         self.model_weight_file = param_map["model_weight_file"]
         self.custom_training = utils.strtobool(param_map["custom_training"])
         self.batch_size = int(param_map["batch_size"])
@@ -70,7 +69,6 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         param_map["model_name"] = self.model_name
         param_map["cfg"] = self.cfg
         param_map["config_file"] = self.config_file
-        param_map["weights"] = self.weights
         param_map["model_weight_file"] = self.model_weight_file
         param_map["custom_training"] = str(self.custom_training)
         param_map["batch_size"] = str(self.batch_size)
@@ -106,6 +104,50 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
         # This is handled by the main progress bar of Ikomia application
         return 1
 
+    @staticmethod
+    def get_model_zoo():
+        configs_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "configs", "textrecog")
+        available_pairs = []
+        for model_name in os.listdir(configs_folder):
+            if model_name.startswith('_'):
+                continue
+            yaml_file = os.path.join(configs_folder, model_name, "metafile.yml")
+            if os.path.isfile(yaml_file):
+                with open(yaml_file, "r") as f:
+                    models_list = yaml.load(f, Loader=yaml.FullLoader)
+                    if 'Models' in models_list:
+                        models_list = models_list['Models']
+                    if not isinstance(models_list, list):
+                        continue
+                for model_dict in models_list:
+                    available_pairs.append({"model_name": model_name, "cfg": os.path.basename(model_dict["Name"])})
+        return available_pairs
+
+    @staticmethod
+    def get_cfg_and_weights_from_name(model_name, model_config):
+        yaml_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "configs", "textrecog", model_name,
+                                 "metafile.yml")
+
+        if model_config.endswith('.py'):
+            model_config = model_config[:-3]
+        if os.path.isfile(yaml_file):
+            with open(yaml_file, "r") as f:
+                models_list = yaml.load(f, Loader=yaml.FullLoader)['Models']
+
+            available_cfg_ckpt = {model_dict["Name"]: {'cfg': model_dict["Config"],
+                                                       'ckpt': model_dict["Weights"]}
+                                  for model_dict in models_list}
+            if model_config in available_cfg_ckpt:
+                cfg_file = available_cfg_ckpt[model_config]['cfg']
+                ckpt_file = available_cfg_ckpt[model_config]['ckpt']
+                cfg_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), cfg_file)
+            else:
+                raise Exception(
+                    f"{model_config} does not exist for {model_name}. Available configs for are {', '.join(list(available_cfg_ckpt.keys()))}")
+        else:
+            raise Exception(f"Model name {model_name} does not exist.")
+        return cfg_file, ckpt_file
+
     def run(self):
         # Core function of your process
         # Call begin_task_run for initialization
@@ -133,23 +175,21 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
             if self.model is None or param.update:
                 if param.model_weight_file != "":
                     param.custom_training = True
-            if not param.custom_training:
-                config = os.path.join(os.path.dirname(os.path.abspath(__file__)), "configs", "textrecog",
-                                      param.model_name, param.cfg)
-                cfg = config
-                ckpt = param.weights
-            else:
-                tmp_cfg = NamedTemporaryFile(suffix='.py')
-                cfg = param.config_file
-                cfg = Config.fromfile(cfg)
-                cfg.model.decoder.dictionary.dict_file = param.dict_file
-                cfg.dump(tmp_cfg.name)
-                cfg = tmp_cfg.name
-                ckpt = param.model_weight_file
-            register_all_modules()
-            self.model = TextRecInferencer(cfg, ckpt, device=self.device)
-            param.update = False
-            print("Model loaded!")
+                if not param.custom_training:
+                    config, ckpt = self.get_cfg_and_weights_from_name(param.model_name, param.cfg)
+                    cfg = Config.fromfile(config)
+                else:
+                    tmp_cfg = NamedTemporaryFile(suffix='.py')
+                    cfg = param.config_file
+                    cfg = Config.fromfile(cfg)
+                    cfg.model.decoder.dictionary.dict_file = param.dict_file
+                    cfg.dump(tmp_cfg.name)
+                    cfg = tmp_cfg.name
+                    ckpt = param.model_weight_file
+                register_all_modules()
+                self.model = TextRecInferencer(cfg, ckpt, device=self.device)
+                param.update = False
+                print("Model loaded!")
 
         if self.model is not None:
             if img is not None:

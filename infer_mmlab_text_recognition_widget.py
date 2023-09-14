@@ -103,11 +103,8 @@ class InferMmlabTextRecognitionWidget(core.CWorkflowTaskWidget):
                 with open(yaml_file, "r") as f:
                     models_list = yaml.load(f, Loader=yaml.FullLoader)['Models']
 
-                self.available_cfg_ckpt = {model_dict["Name"]: {'cfg': model_dict["Config"],
-                                                                'ckpt': model_dict["Weights"]}
-                                           for
-                                           model_dict in models_list}
-                for experiment_name in self.available_cfg_ckpt.keys():
+                available_cfg = [os.path.splitext(os.path.basename(model_dict["Config"]))[0] for model_dict in models_list]
+                for experiment_name in available_cfg:
                     self.combo_config.addItem(experiment_name)
                     config_names.append(experiment_name)
 
@@ -115,7 +112,7 @@ class InferMmlabTextRecognitionWidget(core.CWorkflowTaskWidget):
                 if selected_cfg in config_names:
                     self.combo_config.setCurrentText(selected_cfg)
                 else:
-                    self.combo_config.setCurrentText(list(self.available_cfg_ckpt.keys())[0])
+                    self.combo_config.setCurrentText(available_cfg[0])
 
     def on_check_custom_training_changed(self, int):
         self.combo_model.setEnabled(not self.check_custom_training.isChecked())
@@ -136,7 +133,6 @@ class InferMmlabTextRecognitionWidget(core.CWorkflowTaskWidget):
         self.parameters.config_file = self.browse_cfg.path
         self.parameters.custom_training = self.check_custom_training.isChecked()
         self.parameters.cfg = self.combo_config.currentText()+".py"
-        self.parameters.weights = self.available_cfg_ckpt[self.combo_config.currentText()]['ckpt']
         self.parameters.dict_file = self.browse_dict_file.path
         # update model
         self.parameters.update = True
