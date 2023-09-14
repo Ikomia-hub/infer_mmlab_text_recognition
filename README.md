@@ -19,10 +19,11 @@
     </a> 
 </p>
 
-If custom training is disabled, models will come from MMLAB's model zoo.Else, you can also choose to load a model you trained yourself with our plugin train_mmlab_text_recognition. In this case make sure you give to the plugina config file (.py) and a model file (.pth). Both of these files are produced by the train plugin.
+Run text recognition algorithms from MMLAB framework. This algorithm will often be applied after a text detection algorithm. You can use ***infer_mmlab_text_detection*** from Ikomia HUB for this task.
 
-[Insert illustrative image here. Image must be accessible publicly, in algorithm Github repository for example.
-<img src="images/illustration.png"  alt="Illustrative image" width="30%" height="30%">]
+Models will come from MMLAB's model zoo if custom training is disabled. If not, you can choose to load your model trained with algorithm *train_mmlab_detection* from Ikomia HUB. In this case, make sure to set parameters for config file (.py) and model file (.pth). Both of these files are produced by the train algorithm.
+
+![Example image](https://raw.githubusercontent.com/Ikomia-hub/infer_mmlab_text_recognition/feat/new_readme/images/billboard-result.jpg)
 
 ## :rocket: Use with Ikomia API
 
@@ -36,20 +37,26 @@ pip install ikomia
 
 #### 2. Create your workflow
 
-[Change the sample image URL to fit algorithm purpose]
-
 ```python
-import ikomia
 from ikomia.dataprocess.workflow import Workflow
+from ikomia.utils.displayIO import display
 
 # Init your workflow
 wf = Workflow()
 
-# Add algorithm
-algo = wf.add_task(name="infer_mmlab_text_recognition", auto_connect=True)
+# Add text detection algorithm
+text_det = wf.add_task(name="infer_mmlab_text_detection", auto_connect=True)
 
-# Run on your image  
-wf.run_on(url="example_image.png")
+# Add text recognition algorithm
+text_rec = wf.add_task(name="infer_mmlab_text_recognition", auto_connect=True)
+
+# Run the workflow on image
+wf.run_on(url="https://raw.githubusercontent.com/Ikomia-hub/infer_mmlab_text_recognition/main/images/billboard.jpg")
+
+# Display results
+img_output = text_rec.get_output(0)
+recognition_output = text_rec.get_output(1)
+display(img_output.get_image_with_mask_and_graphics(recognition_output), title="MMLAB text recognition")
 ```
 
 ## :sunny: Use with Ikomia Studio
@@ -62,29 +69,54 @@ Ikomia Studio offers a friendly UI with the same features as the API.
 
 ## :pencil: Set algorithm parameters
 
-[Explain each algorithm parameters]
+```python
+from ikomia.dataprocess.workflow import Workflow
+from ikomia.utils.displayIO import display
 
-[Change the sample image URL to fit algorithm purpose]
+# Init your workflow
+wf = Workflow()
+
+# Add text detection algorithm
+text_det = wf.add_task(name="infer_mmlab_text_detection", auto_connect=True)
+
+# Add text recognition algorithm
+text_rec = wf.add_task(name="infer_mmlab_text_recognition", auto_connect=True)
+
+text_rec.set_parameters({
+    "model_name": "satrn",
+    "cfg": "satrn_shallow-small_5e_st_mj.py",
+    "custom_training": "False",
+    "config_file": "",
+    "model_weight_file": "",
+    "batch_size": "64",
+    "dict_file": "dicts/english_digits_symbols.txt",
+})
+
+# Run the workflow on image
+wf.run_on(url="https://raw.githubusercontent.com/Ikomia-hub/infer_mmlab_text_recognition/main/images/billboard.jpg")
+```
+- **model_name** (str, default="satrn"): model name. 
+- **cfg** (str, default="satrn_shallow-small_5e_st_mj"): name of the model configuration file.
+- **conf_thres** (float, default=0.5): object detection confidence.
+- **custom_training** (bool, default=False): flag to enable the custom train model choice.
+- **config_file** (str, default=""): path to model config file (only if *custom_training=True*). The file is generated at the end of a custom training. Use algorithm ***train_mmlab_text_recognition*** from Ikomia HUB to train custom model.
+- **model_weight_file** (str, default=""): path to model weights file (.pt) (only if *custom_training=True*). The file is generated at the end of a custom training.
+- **batch_size** (int, default=64): batch processing to speed up inference time.
+- **dict_file** (str, default="dicts/english_digits_symbols.txt"): characters dictionary.
+
+MMLab framework for text recognition offers a large range of models. To ease the choice of couple (model_name/cfg), you can call the function *get_model_zoo()* to get a list of possible values.
 
 ```python
-import ikomia
 from ikomia.dataprocess.workflow import Workflow
 
 # Init your workflow
 wf = Workflow()
 
-# Add algorithm
-algo = wf.add_task(name="infer_mmlab_text_recognition", auto_connect=True)
+# Add text recognition algorithm
+text_rec = wf.add_task(name="infer_mmlab_text_recognition", auto_connect=True)
 
-algo.set_parameters({
-    "param1": "value1",
-    "param2": "value2",
-    ...
-})
-
-# Run on your image  
-wf.run_on(url="example_image.png")
-
+# Get list of possible models (model_name, model_config)
+print(text_rec.get_model_zoo())
 ```
 
 ## :mag: Explore algorithm outputs
@@ -92,26 +124,30 @@ wf.run_on(url="example_image.png")
 Every algorithm produces specific outputs, yet they can be explored them the same way using the Ikomia API. For a more in-depth understanding of managing algorithm outputs, please refer to the [documentation](https://ikomia-dev.github.io/python-api-documentation/advanced_guide/IO_management.html).
 
 ```python
-import ikomia
 from ikomia.dataprocess.workflow import Workflow
+from ikomia.utils.displayIO import display
 
 # Init your workflow
 wf = Workflow()
 
-# Add algorithm
-algo = wf.add_task(name="infer_mmlab_text_recognition", auto_connect=True)
+# Add text detection algorithm
+text_det = wf.add_task(name="infer_mmlab_text_detection", auto_connect=True)
 
-# Run on your image  
-wf.run_on(url="example_image.png")
+# Add text recognition algorithm
+text_rec = wf.add_task(name="infer_mmlab_text_recognition", auto_connect=True)
+
+# Run the workflow on image
+wf.run_on(url="https://raw.githubusercontent.com/Ikomia-hub/infer_mmlab_text_recognition/main/images/billboard.jpg")
 
 # Iterate over outputs
-for output in algo.get_outputs()
+for output in text_rec.get_outputs()
     # Print information
     print(output)
     # Export it to JSON
     output.to_json()
 ```
 
-## :fast_forward: Advanced usage 
+MMLab text recognition algorithm generates 2 outputs:
 
-[optional]
+1. Forwaded original image (CImageIO)
+2. Text detection output (CTextIO)
