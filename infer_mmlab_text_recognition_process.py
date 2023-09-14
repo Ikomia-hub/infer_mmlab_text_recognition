@@ -21,10 +21,8 @@ import copy
 from mmocr.utils import register_all_modules
 from mmocr.apis.inferencers import TextRecInferencer
 import torch
-from infer_mmlab_text_recognition.utils import polygon2bbox, bbox2polygon
 from tempfile import NamedTemporaryFile
 import os
-import cv2
 import numpy as np
 from mmengine import Config
 
