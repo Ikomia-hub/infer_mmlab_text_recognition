@@ -140,7 +140,7 @@ text_rec = wf.add_task(name="infer_mmlab_text_recognition", auto_connect=True)
 wf.run_on(url="https://raw.githubusercontent.com/Ikomia-hub/infer_mmlab_text_recognition/main/images/billboard.jpg")
 
 # Iterate over outputs
-for output in text_rec.get_outputs()
+for output in text_rec.get_outputs():
     # Print information
     print(output)
     # Export it to JSON
