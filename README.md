@@ -71,7 +71,6 @@ Ikomia Studio offers a friendly UI with the same features as the API.
 
 ```python
 from ikomia.dataprocess.workflow import Workflow
-from ikomia.utils.displayIO import display
 
 # Init your workflow
 wf = Workflow()
@@ -125,7 +124,6 @@ Every algorithm produces specific outputs, yet they can be explored them the sam
 
 ```python
 from ikomia.dataprocess.workflow import Workflow
-from ikomia.utils.displayIO import display
 
 # Init your workflow
 wf = Workflow()
@@ -140,7 +138,7 @@ text_rec = wf.add_task(name="infer_mmlab_text_recognition", auto_connect=True)
 wf.run_on(url="https://raw.githubusercontent.com/Ikomia-hub/infer_mmlab_text_recognition/main/images/billboard.jpg")
 
 # Iterate over outputs
-for output in text_rec.get_outputs()
+for output in text_rec.get_outputs():
     # Print information
     print(output)
     # Export it to JSON
@@ -149,5 +147,5 @@ for output in text_rec.get_outputs()
 
 MMLab text recognition algorithm generates 2 outputs:
 
-1. Forwaded original image (CImageIO)
+1. Forwarded original image (CImageIO)
 2. Text detection output (CTextIO)
