@@ -264,11 +264,6 @@ class InferMmlabTextRecognitionFactory(dataprocess.CTaskFactory):
         # Set process information as string here
         self.info.name = "infer_mmlab_text_recognition"
         self.info.short_description = "Inference for MMOCR from MMLAB text recognition models"
-        self.info.description = "If custom training is disabled, models will come from MMLAB's model zoo." \
-                                "Else, you can also choose to load a model you trained yourself with our plugin " \
-                                "train_mmlab_text_recognition. In this case make sure you give to the plugin" \
-                                "a config file (.py) and a model file (.pth). Both of these files are produced " \
-                                "by the train plugin."
         # relative path -> as displayed in Ikomia application process tree
         self.info.path = "Plugins/Python/Text"
         self.info.version = "1.1.2"
