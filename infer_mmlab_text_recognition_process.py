@@ -124,30 +124,35 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
         return available_pairs
 
     @staticmethod
-    def get_cfg_and_weights_from_name(model_name, model_config):
-        yaml_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "configs", "textrecog", model_name,
-                                 "metafile.yml")
+    def get_absolute_paths(param):
+        model_name = param.model_name
+        model_config = param.cfg
+        if param.model_weight_file == "":
+            yaml_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "configs", "textrecog", model_name,
+                                     "metafile.yml")
 
-        if model_config.endswith('.py'):
-            model_config = model_config[:-3]
-        if os.path.isfile(yaml_file):
-            with open(yaml_file, "r") as f:
-                models_list = yaml.load(f, Loader=yaml.FullLoader)['Models']
+            if model_config.endswith('.py'):
+                model_config = model_config[:-3]
+            if os.path.isfile(yaml_file):
+                with open(yaml_file, "r") as f:
+                    models_list = yaml.load(f, Loader=yaml.FullLoader)['Models']
 
-            available_cfg_ckpt = {model_dict["Name"]: {'cfg': model_dict["Config"],
-                                                       'ckpt': model_dict["Weights"]}
-                                  for model_dict in models_list}
-            if model_config in available_cfg_ckpt:
-                cfg_file = available_cfg_ckpt[model_config]['cfg']
-                ckpt_file = available_cfg_ckpt[model_config]['ckpt']
-                cfg_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), cfg_file)
+                available_cfg_ckpt = {model_dict["Name"]: {'cfg': model_dict["Config"],
+                                                           'ckpt': model_dict["Weights"]}
+                                      for model_dict in models_list}
+                if model_config in available_cfg_ckpt:
+                    cfg_file = available_cfg_ckpt[model_config]['cfg']
+                    ckpt_file = available_cfg_ckpt[model_config]['ckpt']
+                    cfg_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), cfg_file)
+                else:
+                    raise Exception(
+                        f"{model_config} does not exist for {model_name}. Available configs for are {', '.join(list(available_cfg_ckpt.keys()))}")
             else:
-                raise Exception(
-                    f"{model_config} does not exist for {model_name}. Available configs for are {', '.join(list(available_cfg_ckpt.keys()))}")
-        else:
-            raise Exception(f"Model name {model_name} does not exist.")
-        return cfg_file, ckpt_file
+                raise Exception(f"Model name {model_name} does not exist.")
 
+            return cfg_file, ckpt_file
+        else:
+            return param.config_file, param.model_weight_file
     def run(self):
         # Core function of your process
         # Call begin_task_run for initialization
@@ -173,23 +178,19 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
         if self.model is None or param.update:
             print("Loading text recognition model...")
             if self.model is None or param.update:
-                if param.model_weight_file != "":
-                    param.custom_training = True
-                if not param.custom_training:
-                    config, ckpt = self.get_cfg_and_weights_from_name(param.model_name, param.cfg)
-                    cfg = Config.fromfile(config)
-                else:
-                    tmp_cfg = NamedTemporaryFile(suffix='.py')
-                    cfg = param.config_file
-                    cfg = Config.fromfile(cfg)
-                    cfg.model.decoder.dictionary.dict_file = param.dict_file
-                    cfg.dump(tmp_cfg.name)
-                    cfg = tmp_cfg.name
-                    ckpt = param.model_weight_file
+                cfg, ckpt = self.get_absolute_paths(param)
+                tmp_cfg = NamedTemporaryFile(suffix='.py', delete=False)
+                cfg = Config.fromfile(cfg)
+                cfg.model.decoder.dictionary.dict_file = param.dict_file
+                cfg.dump(tmp_cfg.name)
+                tmp_cfg.close()
+                cfg = tmp_cfg.name
+
                 register_all_modules()
                 self.model = TextRecInferencer(cfg, ckpt, device=self.device)
                 param.update = False
                 print("Model loaded!")
+                os.remove(tmp_cfg.name)
 
         if self.model is not None:
             if img is not None:
