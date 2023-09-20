@@ -183,16 +183,18 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
             print("Loading text recognition model...")
             if self.model is None or param.update:
                 cfg, ckpt = self.get_absolute_paths(param)
-                tmp_cfg = NamedTemporaryFile(suffix='.py')
+                tmp_cfg = NamedTemporaryFile(suffix='.py', delete=False)
                 cfg = Config.fromfile(cfg)
                 cfg.model.decoder.dictionary.dict_file = param.dict_file
                 cfg.dump(tmp_cfg.name)
+                tmp_cfg.close()
                 cfg = tmp_cfg.name
 
                 register_all_modules()
                 self.model = TextRecInferencer(cfg, ckpt, device=self.device)
                 param.update = False
                 print("Model loaded!")
+                os.remove(tmp_cfg.name)
 
         if self.model is not None:
             if img is not None:
@@ -270,11 +272,6 @@ class InferMmlabTextRecognitionFactory(dataprocess.CTaskFactory):
         # Set process information as string here
         self.info.name = "infer_mmlab_text_recognition"
         self.info.short_description = "Inference for MMOCR from MMLAB text recognition models"
-        self.info.description = "If custom training is disabled, models will come from MMLAB's model zoo." \
-                                "Else, you can also choose to load a model you trained yourself with our plugin " \
-                                "train_mmlab_text_recognition. In this case make sure you give to the plugin" \
-                                "a config file (.py) and a model file (.pth). Both of these files are produced " \
-                                "by the train plugin."
         # relative path -> as displayed in Ikomia application process tree
         self.info.path = "Plugins/Python/Text"
         self.info.version = "1.1.2"
