@@ -183,19 +183,20 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
             print("Loading text recognition model...")
             if self.model is None or param.update:
                 cfg, ckpt = self.get_absolute_paths(param)
-                tmp_cfg = NamedTemporaryFile(suffix='.py', delete=False)
-                cfg = Config.fromfile(cfg)
-                default_dictionary = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dicts", "english_digits_symbols.txt")
-                cfg.model.decoder.dictionary.dict_file = param.dict_file if param.dict_file != "" else default_dictionary
-                cfg.dump(tmp_cfg.name)
-                tmp_cfg.close()
-                cfg = tmp_cfg.name
+                if param.dict_file != "":
+                    cfg = Config.fromfile(cfg)
+                    tmp_cfg = NamedTemporaryFile(suffix='.py', delete=False)
+                    cfg.model.decoder.dictionary.dict_file = param.dict_file
+                    cfg.dump(tmp_cfg.name)
+                    cfg = tmp_cfg.name
+                    tmp_cfg.close()
 
                 register_all_modules()
                 self.model = TextRecInferencer(cfg, ckpt, device=self.device)
                 param.update = False
                 print("Model loaded!")
-                os.remove(tmp_cfg.name)
+                if param.dict_file != "":
+                    os.remove(tmp_cfg.name)
 
         if self.model is not None:
             if img is not None:
