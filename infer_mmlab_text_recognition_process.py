@@ -45,7 +45,7 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         self.model_weight_file = ""
         self.custom_training = False
         self.batch_size = 64
-        self.dict_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dicts", "english_digits_symbols.txt")
+        self.dict_file = ""
 
     def set_values(self, param_map):
         # Set parameters values from Ikomia application
@@ -185,7 +185,8 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
                 cfg, ckpt = self.get_absolute_paths(param)
                 tmp_cfg = NamedTemporaryFile(suffix='.py', delete=False)
                 cfg = Config.fromfile(cfg)
-                cfg.model.decoder.dictionary.dict_file = param.dict_file
+                default_dictionary = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dicts", "english_digits_symbols.txt")
+                cfg.model.decoder.dictionary.dict_file = param.dict_file if param.dict_file != "" else default_dictionary
                 cfg.dump(tmp_cfg.name)
                 tmp_cfg.close()
                 cfg = tmp_cfg.name
