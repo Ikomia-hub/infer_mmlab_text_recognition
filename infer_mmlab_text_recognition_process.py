@@ -289,7 +289,8 @@ class InferMmlabTextRecognitionFactory(dataprocess.CTaskFactory):
         # URL of documentation
         self.info.documentation_link = "https://mmocr.readthedocs.io/en/latest/"
         # Code source repository
-        self.info.repository = "https://github.com/open-mmlab/mmocr"
+        self.info.repository = "https://github.com/Ikomia-hub/infer_mmlab_text_recognition"
+        self.info.original_repository = "https://github.com/open-mmlab/mmocr"
         # Keywords used for search
         self.info.keywords = "inference, mmlab, mmocr, ocr, text, recognition, pytorch, satrn, seg"
 
