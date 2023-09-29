@@ -23,7 +23,7 @@ Run text recognition algorithms from MMLAB framework. This algorithm will often 
 
 Models will come from MMLAB's model zoo if custom training is disabled. If not, you can choose to load your model trained with algorithm *train_mmlab_detection* from Ikomia HUB. In this case, make sure to set parameters for config file (.py) and model file (.pth). Both of these files are produced by the train algorithm.
 
-![Example image](https://raw.githubusercontent.com/Ikomia-hub/infer_mmlab_text_recognition/feat/new_readme/images/billboard-result.jpg)
+![Example image](https://raw.githubusercontent.com/Ikomia-hub/infer_mmlab_text_recognition/main/images/billboard-result.jpg)
 
 ## :rocket: Use with Ikomia API
 
