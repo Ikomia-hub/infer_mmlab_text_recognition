@@ -293,6 +293,8 @@ class InferMmlabTextRecognitionFactory(dataprocess.CTaskFactory):
         self.info.original_repository = "https://github.com/open-mmlab/mmocr"
         # Keywords used for search
         self.info.keywords = "inference, mmlab, mmocr, ocr, text, recognition, pytorch, satrn, seg"
+        self.info.algo_type = core.AlgoType.INFER
+        self.info.algo_tasks = "OCR"
 
     def create(self, param=None):
         # Create process object
