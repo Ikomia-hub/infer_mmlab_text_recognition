@@ -43,7 +43,6 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         self.cfg = "satrn_shallow-small_5e_st_mj.py"
         self.config_file = ""
         self.model_weight_file = ""
-        self.custom_training = False
         self.batch_size = 64
         self.dict_file = ""
 
@@ -56,7 +55,6 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         self.cfg = param_map["cfg"]
         self.config_file = param_map["config_file"]
         self.model_weight_file = param_map["model_weight_file"]
-        self.custom_training = utils.strtobool(param_map["custom_training"])
         self.batch_size = int(param_map["batch_size"])
         self.dict_file = param_map["dict_file"]
 
@@ -70,7 +68,6 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
         param_map["cfg"] = self.cfg
         param_map["config_file"] = self.config_file
         param_map["model_weight_file"] = self.model_weight_file
-        param_map["custom_training"] = str(self.custom_training)
         param_map["batch_size"] = str(self.batch_size)
         param_map["dict_file"] = self.dict_file
         return param_map
@@ -276,7 +273,7 @@ class InferMmlabTextRecognitionFactory(dataprocess.CTaskFactory):
         self.info.short_description = "Inference for MMOCR from MMLAB text recognition models"
         # relative path -> as displayed in Ikomia application process tree
         self.info.path = "Plugins/Python/Text"
-        self.info.version = "2.0.1"
+        self.info.version = "3.0.0"
         self.info.icon_path = "icons/mmlab.png"
         # self.info.icon_path = "your path to a specific icon"
         self.info.authors = "Kuang, Zhanghui and Sun, Hongbin and Li, Zhizhong and Yue, Xiaoyu and Lin," \

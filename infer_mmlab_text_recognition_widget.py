@@ -131,7 +131,6 @@ class InferMmlabTextRecognitionWidget(core.CWorkflowTaskWidget):
         self.parameters.model_name = self.combo_model.currentText()
         self.parameters.model_weight_file = self.browse_model.path
         self.parameters.config_file = self.browse_cfg.path
-        self.parameters.custom_training = self.check_custom_training.isChecked()
         self.parameters.cfg = self.combo_config.currentText()+".py"
         self.parameters.dict_file = self.browse_dict_file.path
         # update model

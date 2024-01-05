@@ -84,7 +84,6 @@ text_rec = wf.add_task(name="infer_mmlab_text_recognition", auto_connect=True)
 text_rec.set_parameters({
     "model_name": "satrn",
     "cfg": "satrn_shallow-small_5e_st_mj.py",
-    "custom_training": "False",
     "config_file": "",
     "model_weight_file": "",
     "batch_size": "64",
@@ -97,7 +96,6 @@ wf.run_on(url="https://raw.githubusercontent.com/Ikomia-hub/infer_mmlab_text_rec
 - **model_name** (str, default="satrn"): model name. 
 - **cfg** (str, default="satrn_shallow-small_5e_st_mj"): name of the model configuration file.
 - **conf_thres** (float, default=0.5): object detection confidence.
-- **custom_training** (bool, default=False): flag to enable the custom train model choice.
 - **config_file** (str, default=""): path to model config file (only if *custom_training=True*). The file is generated at the end of a custom training. Use algorithm ***train_mmlab_text_recognition*** from Ikomia HUB to train custom model.
 - **model_weight_file** (str, default=""): path to model weights file (.pt) (only if *custom_training=True*). The file is generated at the end of a custom training.
 - **batch_size** (int, default=64): batch processing to speed up inference time.
