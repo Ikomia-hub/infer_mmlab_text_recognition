@@ -44,7 +44,7 @@ class InferMmlabTextRecognitionWidget(core.CWorkflowTaskWidget):
 
         # Pretrained or custom training
         self.check_custom_training = pyqtutils.append_check(self.grid_layout, "Custom training",
-                                                            self.parameters.custom_training)
+                                                            self.parameters.model_weight_file != "")
         self.check_custom_training.stateChanged.connect(self.on_check_custom_training_changed)
 
         # Models
