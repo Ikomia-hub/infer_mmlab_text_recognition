@@ -121,6 +121,7 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
     def init_long_process(self):
         register_all_modules()
         self._load_model()
+        super().init_long_process()
 
     @staticmethod
     def get_model_zoo():
