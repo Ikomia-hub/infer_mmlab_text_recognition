@@ -15,17 +15,19 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import os
+import copy
+import yaml
+from tempfile import NamedTemporaryFile
+
+import torch
+import numpy as np
 
 from ikomia import utils, core, dataprocess
-import copy
+
 from mmocr.utils import register_all_modules
 from mmocr.apis.inferencers import TextRecInferencer
-import torch
-from tempfile import NamedTemporaryFile
-import os
-import numpy as np
 from mmengine import Config
-import yaml
 
 
 # --------------------
@@ -37,7 +39,6 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
     def __init__(self):
         core.CWorkflowTaskParam.__init__(self)
         # Place default value initialization here
-        # Example : self.windowSize = 25
         self.update = False
         self.model_name = "satrn"
         self.cfg = "satrn_shallow-small_5e_st_mj.py"
@@ -49,7 +50,6 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
     def set_values(self, param_map):
         # Set parameters values from Ikomia application
         # Parameters values are stored as string and accessible like a python dict
-        # Example : self.windowSize = int(param_map["windowSize"])
         self.update = utils.strtobool(param_map["update"])
         self.model_name = param_map["model_name"]
         self.cfg = param_map["cfg"]
@@ -61,15 +61,15 @@ class InferMmlabTextRecognitionParam(core.CWorkflowTaskParam):
     def get_values(self):
         # Send parameters values to Ikomia application
         # Create the specific dict structure (string container)
-        param_map = {}
-        # Example : paramMap["windowSize"] = str(self.windowSize)
-        param_map["update"] = str(self.update)
-        param_map["model_name"] = self.model_name
-        param_map["cfg"] = self.cfg
-        param_map["config_file"] = self.config_file
-        param_map["model_weight_file"] = self.model_weight_file
-        param_map["batch_size"] = str(self.batch_size)
-        param_map["dict_file"] = self.dict_file
+        param_map = {
+            "update": str(self.update),
+            "model_name": self.model_name,
+            "cfg": self.cfg,
+            "config_file": self.config_file,
+            "model_weight_file": self.model_weight_file,
+            "batch_size": str(self.batch_size),
+            "dict_file": self.dict_file
+        }
         return param_map
 
 
@@ -82,14 +82,10 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
     def __init__(self, name, param):
         dataprocess.C2dImageTask.__init__(self, name)
         # Add input/output of the process here
-        # Example :  self.addInput(dataprocess.CImageIO())
-        #           self.add_output(dataprocess.CImageIO())
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        # number of words to recognize per model run
-
         self.add_output(dataprocess.CTextIO())
-
         self.model = None
+
         # Create parameters class
         if param is None:
             self.set_param_object(InferMmlabTextRecognitionParam())
@@ -100,6 +96,32 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
         # Function returning the number of progress steps for this process
         # This is handled by the main progress bar of Ikomia application
         return 1
+
+    def _load_model(self):
+        print("Loading text recognition model...")
+        param = self.get_param_object()
+        cfg, ckpt = self.get_absolute_paths(param)
+
+        if param.dict_file != "":
+            cfg = Config.fromfile(cfg)
+            tmp_cfg = NamedTemporaryFile(suffix='.py', delete=False)
+            cfg.model.decoder.dictionary.dict_file = param.dict_file
+            cfg.dump(tmp_cfg.name)
+            cfg = tmp_cfg.name
+            tmp_cfg.close()
+
+
+        self.model = TextRecInferencer(cfg, ckpt, device=self.device)
+        param.update = False
+        print("Model loaded!")
+
+        if param.dict_file != "":
+            os.remove(tmp_cfg.name)
+
+    def init_long_process(self):
+        register_all_modules()
+        self._load_model()
+        super().init_long_process()
 
     @staticmethod
     def get_model_zoo():
@@ -150,6 +172,7 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
             return cfg_file, ckpt_file
         else:
             return param.config_file, param.model_weight_file
+
     def run(self):
         # Core function of your process
         # Call begin_task_run for initialization
@@ -158,10 +181,9 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
         param = self.get_param_object()
         batch_size = param.batch_size
         # Get input :
-        input = self.get_input(0)
+        img_input = self.get_input(0)
         graphics_input = self.get_input(1)
-
-        img = input.get_image()
+        img = img_input.get_image()
 
         # Get output :
         text_output = self.get_output(1)
@@ -176,72 +198,55 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
         torch.hub.set_dir(os.path.join(os.path.dirname(__file__), "models"))
 
         # Load models into memory
-        if self.model is None or param.update:
-            print("Loading text recognition model...")
-            if self.model is None or param.update:
-                cfg, ckpt = self.get_absolute_paths(param)
-                if param.dict_file != "":
-                    cfg = Config.fromfile(cfg)
-                    tmp_cfg = NamedTemporaryFile(suffix='.py', delete=False)
-                    cfg.model.decoder.dictionary.dict_file = param.dict_file
-                    cfg.dump(tmp_cfg.name)
-                    cfg = tmp_cfg.name
-                    tmp_cfg.close()
+        if param.update:
+            self._load_model()
 
-                register_all_modules()
-                self.model = TextRecInferencer(cfg, ckpt, device=self.device)
-                param.update = False
-                print("Model loaded!")
-                if param.dict_file != "":
-                    os.remove(tmp_cfg.name)
+        if self.model is None:
+            raise RuntimeError("No model loaded. Please check algorithm paramters.")
 
-        if self.model is not None:
-            if img is not None:
-                color = [255, 0, 0]
+        if img is None:
+            raise RuntimeError("No input image.")
 
-                # Shape of output image
-                h_original, w_original, _ = np.shape(img)
+        color = [255, 0, 0]
+        # Shape of output image
+        h_original, w_original, _ = np.shape(img)
 
-                nb_obj = 0
-                # Check if there are boxes as input
-                if graphics_input.is_data_available():
-                    nb_obj = len(graphics_input.get_items())
+        nb_obj = 0
+        # Check if there are boxes as input
+        if graphics_input.is_data_available():
+            nb_obj = len(graphics_input.get_items())
 
-                if nb_obj > 0:
-                    polygons = graphics_input.get_items()
-                    imgs = []
-                    boxes = []
-                    # create batch of images containing text
-                    for polygon in polygons:
-                        if polygon.is_text_item():
-                            continue
-                        bbox = polygon.get_bounding_rect()
-                        x, y, w, h = [int(coord) for coord in bbox]
+        if nb_obj > 0:
+            polygons = graphics_input.get_items()
+            imgs = []
+            boxes = []
 
-                        crop_img = img[y:y + h, x:x + w]
-                        if np.cumprod(np.shape(crop_img)).flatten()[-1] > 0:
-                            imgs.append(crop_img)
-                            boxes.append(bbox)
+            # create batch of images containing text
+            for polygon in polygons:
+                if polygon.is_text_item():
+                    continue
+                bbox = polygon.get_bounding_rect()
+                x, y, w, h = [int(coord) for coord in bbox]
 
-                    results = self.batch_infer(imgs, batch_size)
-                    for i, (box, prediction) in enumerate(zip(boxes[::-1], results[::-1])):
-                        text = prediction['text']
-                        conf = prediction['scores']
-                        box_x, box_y, box_width, box_height = [float(c) for c in box]
-                        text_output.add_text_field(id=i, label="", text=text, confidence=float(conf),box_x=box_x, box_y=box_y, box_width=box_width, box_height=box_height, color=color)
+                crop_img = img[y:y + h, x:x + w]
+                if np.cumprod(np.shape(crop_img)).flatten()[-1] > 0:
+                    imgs.append(crop_img)
+                    boxes.append(bbox)
 
-                # If there is no box input, the whole image is passed to the model
-                else:
-                    h, w, _ = np.shape(img)
-                    prediction = self.model([img])['predictions'][0]
-                    text = prediction['text']
-                    conf = prediction['scores']
-                    text_output.add_text_field(id=0, label="", text=text, confidence=float(conf), box_x=0., box_y=0., box_width=float(w), box_height=float(h), color=color)
+            results = self.batch_infer(imgs, batch_size)
+            for i, (box, prediction) in enumerate(zip(boxes[::-1], results[::-1])):
+                text = prediction['text']
+                conf = prediction['scores']
+                box_x, box_y, box_width, box_height = [float(c) for c in box]
+                text_output.add_text_field(id=i, label="", text=text, confidence=float(conf),box_x=box_x, box_y=box_y, box_width=box_width, box_height=box_height, color=color)
 
-            else:
-                print("No input image")
+        # If there is no box input, the whole image is passed to the model
         else:
-            print("No model loaded")
+            h, w, _ = np.shape(img)
+            prediction = self.model([img])['predictions'][0]
+            text = prediction['text']
+            conf = prediction['scores']
+            text_output.add_text_field(id=0, label="", text=text, confidence=float(conf), box_x=0., box_y=0., box_width=float(w), box_height=float(h), color=color)
 
         # Reset torch cache dir for next algorithms in the workflow
         torch.hub.set_dir(old_torch_hub)
@@ -273,8 +278,10 @@ class InferMmlabTextRecognitionFactory(dataprocess.CTaskFactory):
         self.info.short_description = "Inference for MMOCR from MMLAB text recognition models"
         # relative path -> as displayed in Ikomia application process tree
         self.info.path = "Plugins/Python/Text"
-        self.info.version = "3.0.2"
-        self.info.max_python_version = "3.10.0"
+        self.info.version = "3.1.0"
+        self.info.max_python_version = "3.9.0"
+        self.info.max_python_version = "3.11.0"
+        self.info.min_ikomia_version = "0.15.0"
         self.info.icon_path = "icons/mmlab.png"
         # self.info.icon_path = "your path to a specific icon"
         self.info.authors = "Kuang, Zhanghui and Sun, Hongbin and Li, Zhizhong and Yue, Xiaoyu and Lin," \
@@ -293,6 +300,10 @@ class InferMmlabTextRecognitionFactory(dataprocess.CTaskFactory):
         self.info.keywords = "inference, mmlab, mmocr, ocr, text, recognition, pytorch, satrn, seg"
         self.info.algo_type = core.AlgoType.INFER
         self.info.algo_tasks = "OCR"
+        self.info.hardware_config.min_cpu = 4
+        self.info.hardware_config.min_ram = 8
+        self.info.hardware_config.gpu_required = False
+        self.info.hardware_config.min_vram = 6
 
     def create(self, param=None):
         # Create process object
