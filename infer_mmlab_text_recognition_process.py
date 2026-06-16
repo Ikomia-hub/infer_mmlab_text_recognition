@@ -93,7 +93,6 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
             cfg = tmp_cfg.name
             tmp_cfg.close()
 
-
         self.model = TextRecInferencer(cfg, ckpt, device=self.device)
         param.update = False
         print("Model loaded!")
@@ -108,12 +107,14 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
 
     @staticmethod
     def get_model_zoo():
-        configs_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "configs", "textrecog")
+        configs_folder = os.path.join(os.path.dirname(
+            os.path.abspath(__file__)), "configs", "textrecog")
         available_pairs = []
         for model_name in os.listdir(configs_folder):
             if model_name.startswith('_'):
                 continue
-            yaml_file = os.path.join(configs_folder, model_name, "metafile.yml")
+            yaml_file = os.path.join(
+                configs_folder, model_name, "metafile.yml")
             if os.path.isfile(yaml_file):
                 with open(yaml_file, "r") as f:
                     models_list = yaml.load(f, Loader=yaml.FullLoader)
@@ -122,7 +123,8 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
                     if not isinstance(models_list, list):
                         continue
                 for model_dict in models_list:
-                    available_pairs.append({"model_name": model_name, "cfg": os.path.basename(model_dict["Name"])})
+                    available_pairs.append(
+                        {"model_name": model_name, "cfg": os.path.basename(model_dict["Name"])})
         return available_pairs
 
     @staticmethod
@@ -137,7 +139,8 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
                 model_config = model_config[:-3]
             if os.path.isfile(yaml_file):
                 with open(yaml_file, "r") as f:
-                    models_list = yaml.load(f, Loader=yaml.FullLoader)['Models']
+                    models_list = yaml.load(
+                        f, Loader=yaml.FullLoader)['Models']
 
                 available_cfg_ckpt = {model_dict["Name"]: {'cfg': model_dict["Config"],
                                                            'ckpt': model_dict["Weights"]}
@@ -145,7 +148,8 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
                 if model_config in available_cfg_ckpt:
                     cfg_file = available_cfg_ckpt[model_config]['cfg']
                     ckpt_file = available_cfg_ckpt[model_config]['ckpt']
-                    cfg_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), cfg_file)
+                    cfg_file = os.path.join(os.path.dirname(
+                        os.path.abspath(__file__)), cfg_file)
                 else:
                     raise Exception(
                         f"{model_config} does not exist for {model_name}. Available configs for are {', '.join(list(available_cfg_ckpt.keys()))}")
@@ -185,7 +189,8 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
             self._load_model()
 
         if self.model is None:
-            raise RuntimeError("No model loaded. Please check algorithm paramters.")
+            raise RuntimeError(
+                "No model loaded. Please check algorithm paramters.")
 
         if img is None:
             raise RuntimeError("No input image.")
@@ -221,7 +226,8 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
                 text = prediction['text']
                 conf = prediction['scores']
                 box_x, box_y, box_width, box_height = [float(c) for c in box]
-                text_output.add_text_field(id=i, label="", text=text, confidence=float(conf),box_x=box_x, box_y=box_y, box_width=box_width, box_height=box_height, color=color)
+                text_output.add_text_field(id=i, label="", text=text, confidence=float(
+                    conf), box_x=box_x, box_y=box_y, box_width=box_width, box_height=box_height, color=color)
 
         # If there is no box input, the whole image is passed to the model
         else:
@@ -229,7 +235,8 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
             prediction = self.model([img])['predictions'][0]
             text = prediction['text']
             conf = prediction['scores']
-            text_output.add_text_field(id=0, label="", text=text, confidence=float(conf), box_x=0., box_y=0., box_width=float(w), box_height=float(h), color=color)
+            text_output.add_text_field(id=0, label="", text=text, confidence=float(
+                conf), box_x=0., box_y=0., box_width=float(w), box_height=float(h), color=color)
 
         # Reset torch cache dir for next algorithms in the workflow
         torch.hub.set_dir(old_torch_hub)
@@ -241,7 +248,8 @@ class InferMmlabTextRecognition(dataprocess.C2dImageTask):
         self.end_task_run()
 
     def batch_infer(self, imgs, batch_size):
-        chunks = [self.model(imgs[i:i+batch_size], batch_size=batch_size)['predictions'] for i in range(0, len(imgs), batch_size)]
+        chunks = [self.model(imgs[i:i+batch_size], batch_size=batch_size)
+                  ['predictions'] for i in range(0, len(imgs), batch_size)]
         return [_ for __ in chunks for _ in __]
 
     def stop(self):
@@ -261,10 +269,9 @@ class InferMmlabTextRecognitionFactory(dataprocess.CTaskFactory):
         self.info.short_description = "Inference for MMOCR from MMLAB text recognition models"
         # relative path -> as displayed in Ikomia application process tree
         self.info.path = "Plugins/Python/Text"
-        self.info.version = "3.2.0"
-        self.info.max_python_version = "3.10.0"
-        self.info.max_python_version = "3.11.0"
+        self.info.version = "4.0.0"
         self.info.min_ikomia_version = "0.16.0"
+        self.info.min_python_version = "3.10.0"
         self.info.icon_path = "icons/mmlab.png"
         # self.info.icon_path = "your path to a specific icon"
         self.info.authors = "Kuang, Zhanghui and Sun, Hongbin and Li, Zhizhong and Yue, Xiaoyu and Lin," \
@@ -278,7 +285,7 @@ class InferMmlabTextRecognitionFactory(dataprocess.CTaskFactory):
         self.info.documentation_link = "https://mmocr.readthedocs.io/en/latest/"
         # Code source repository
         self.info.repository = "https://github.com/Ikomia-hub/infer_mmlab_text_recognition"
-        self.info.original_repository = "https://github.com/open-mmlab/mmocr"
+        self.info.original_repository = "https://github.com/Ikomia-dev/mmocr"
         # Keywords used for search
         self.info.keywords = "inference, mmlab, mmocr, ocr, text, recognition, pytorch, satrn, seg"
         self.info.algo_type = core.AlgoType.INFER
