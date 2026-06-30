@@ -272,6 +272,7 @@ class InferMmlabTextRecognitionFactory(dataprocess.CTaskFactory):
         self.info.version = "4.1.0"
         self.info.min_ikomia_version = "0.16.0"
         self.info.min_python_version = "3.10.0"
+        self.info.max_python_version = "3.11.0"
         self.info.icon_path = "icons/mmlab.png"
         # self.info.icon_path = "your path to a specific icon"
         self.info.authors = "Kuang, Zhanghui and Sun, Hongbin and Li, Zhizhong and Yue, Xiaoyu and Lin," \
